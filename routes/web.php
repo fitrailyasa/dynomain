@@ -24,6 +24,8 @@ Route::middleware('auth')->group(function () {
         })->name('dashboard');
 
         Route::resource('user', AdminUserController::class);
+        Route::patch('user/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('user.toggle-status');
+
         Route::resource('role', AdminRoleController::class);
         
         Route::resource('server', AdminServerController::class);
