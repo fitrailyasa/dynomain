@@ -1,56 +1,105 @@
 <!-- Button to open modal -->
-<button role="button" class="btn btn-sm m-1 btn-primary" data-bs-toggle="modal" data-bs-target=".formCreate"><i
-        class="fas fa-plus"></i><span class="d-none d-sm-inline"> {{ __('Add') }}</span></button>
+<button role="button" class="btn btn-sm m-1 btn-primary" data-bs-toggle="modal" data-bs-target=".formCreateDomain"><i
+        class="fas fa-plus"></i><span class="d-none d-sm-inline"> {{ __('Tambah Domain / Wildcard') }}</span></button>
 
 <!-- Modal -->
-<div class="modal fade formCreate" tabindex="-1" role="dialog" aria-labelledby="modalFormLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade formCreateDomain" tabindex="-1" role="dialog" aria-labelledby="modalDomainLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <form method="POST" action="{{ route('admin.domain.store') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.domain.store') }}">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalFormLabel">{{ __('Add Data') }}</h5>
+                    <h5 class="modal-title" id="modalDomainLabel">{{ __('Tambah Domain & Wildcard Cloudflare') }}</h5>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body text-left">
                     <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-2">
-                                <label class="form-label">{{ __('Name') }}<span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                    placeholder="name" name="name" id="name" value="{{ old('name') }}"
-                                    required>
-                                @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Nama Domain') }}<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                placeholder="e.g. example.com" name="name" id="name" value="{{ old('name') }}" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="col-md-12">
-                            <div class="mb-2">
-                                <label class="form-label">{{ __('IP') }}<span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('ip') is-invalid @enderror"
-                                    placeholder="ip" name="ip" id="ip" value="{{ old('ip') }}" required>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('IP Server / Backend') }}<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('ip') is-invalid @enderror"
+                                placeholder="e.g. 127.0.0.1" name="ip" id="ip" value="{{ old('ip') }}" required>
                             @error('ip')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <label class="form-label">{{ __('Status') }}<span class="text-danger">*</span></label>
-                                <select class="form-select @error('status') is-invalid @enderror" name="status"
-                                    id="status" required>
-                                    <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Aktif
-                                    </option>
-                                    <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Tidak
-                                        Aktif</option>
-                                </select>
-                                @error('status')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+
+                        <!-- Wildcard Option -->
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_wildcard" id="is_wildcard_create" value="1" checked>
+                                <label class="form-check-label font-weight-bold" for="is_wildcard_create">
+                                    Aktifkan Wildcard Domain Cloudflare (Otomatis match <code>*.domain.com</code> dan <code>domain.com</code>)
+                                </label>
                             </div>
+                        </div>
+
+                        <!-- Target Server Selection -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Target Server (Lokal / SSH Remote)') }}</label>
+                            <select class="form-select" name="server_id">
+                                <option value="">Server Lokal (Localhost / Server Ini)</option>
+                                @foreach($servers as $srv)
+                                    <option value="{{ $srv->id }}">{{ $srv->name }} ({{ strtoupper($srv->type) }} - {{ $srv->host ?: 'Local' }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Webserver Type -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Tipe Webserver') }}<span class="text-danger">*</span></label>
+                            <select class="form-select" name="webserver_type" required>
+                                <option value="nginx">Nginx</option>
+                                <option value="apache">Apache</option>
+                            </select>
+                        </div>
+
+                        <!-- Target Type & Destination -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Tipe Routing Target') }}<span class="text-danger">*</span></label>
+                            <select class="form-select" name="target_type" required>
+                                <option value="proxy">Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
+                                <option value="webroot">Web Root / Directory (e.g. /var/www/html)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Target Destination') }}</label>
+                            <input type="text" class="form-control" name="target_destination" placeholder="http://127.0.0.1:8000 atau /var/www/html">
+                            <small class="text-muted">Jika dikosongkan, otomatis menggunakan IP Backend</small>
+                        </div>
+
+                        <!-- SSL Config -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Mode SSL / HTTPS') }}<span class="text-danger">*</span></label>
+                            <select class="form-select" name="ssl_type" required>
+                                <option value="cloudflare">Cloudflare Proxy (Port 80 HTTP + Real IP Header)</option>
+                                <option value="certbot">Certbot Let's Encrypt (Port 443 SSL)</option>
+                                <option value="custom">Custom SSL Certificate</option>
+                                <option value="none">Tidak Pakai SSL (HTTP Plain)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('Status Domain') }}<span class="text-danger">*</span></label>
+                            <select class="form-select" name="status" required>
+                                <option value="1">Aktif</option>
+                                <option value="0">Tidak Aktif</option>
+                            </select>
+                        </div>
+
+                        <!-- Custom Directives -->
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">{{ __('Custom Directives (Nginx / Apache Header/Rules)') }}</label>
+                            <textarea class="form-control font-monospace" name="custom_nginx_config" rows="3" placeholder="# Custom directives here..."></textarea>
                         </div>
                     </div>
                 </div>

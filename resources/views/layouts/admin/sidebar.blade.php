@@ -44,6 +44,18 @@
                     </li>
                 @endcan
 
+                <li class="nav-header text-white">Webserver & DNS</li>
+
+                @can('view:server')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.server.index') }}"
+                            class="nav-link text-white {{ Request::routeIs('admin.server.index') ? 'aktif' : '' }}">
+                            <i class="nav-icon fas fa-server"></i>
+                            <p>Server & SSH</p>
+                        </a>
+                    </li>
+                @endcan
+
                 @can('view:domain')
                     <li class="nav-item">
                         <a href="{{ route('admin.domain.index') }}"

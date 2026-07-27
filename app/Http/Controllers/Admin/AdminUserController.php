@@ -23,6 +23,7 @@ class AdminUserController extends Controller implements HasMiddleware
             new Middleware('permission:view:user', only: ['index']),
             new Middleware('permission:create:user', only: ['store']),
             new Middleware('permission:edit:user', only: ['update']),
+            new Middleware('permission:edit:user', only: ['toggleStatus']),
             new Middleware('permission:delete:user', only: ['destroy']),
         ];
     }
@@ -99,6 +100,15 @@ class AdminUserController extends Controller implements HasMiddleware
         $user->syncRoles($role);
 
         return back()->with('success', 'Successfully Edit ' . $this->title . '!');
+    }
+
+    public function toggleStatus(string $id)
+    {
+        $user = User::findOrFail($id);
+        $user->email_verified_at = $user->email_verified_at ? null : now();
+        $user->save();
+
+        return back()->with('success', 'Successfully Update Status ' . $this->title . '!');
     }
 
 

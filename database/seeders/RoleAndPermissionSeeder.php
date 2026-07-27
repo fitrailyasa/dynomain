@@ -16,6 +16,7 @@ class RoleAndPermissionSeeder extends Seeder
             'role' => ['view', 'create', 'edit', 'delete'],
             'domain' => ['view', 'create', 'edit', 'delete'],
             'subdomain' => ['view', 'create', 'edit', 'delete'],
+            'server' => ['view', 'create', 'edit', 'delete'],
         ];
 
         foreach ($entities as $entity => $actions) {

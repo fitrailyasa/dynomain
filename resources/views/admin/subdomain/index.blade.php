@@ -2,7 +2,7 @@
 
     <!-- Title -->
     <x-slot name="title">
-        Subdomain
+        Subdomain Management
     </x-slot>
 
     <!-- Button Form Create -->
@@ -22,9 +22,12 @@
         <thead>
             <tr>
                 <th>{{ __('No') }}</th>
-                <th>{{ __('Name') }}</th>
-                <th>{{ __('IP') }}</th>
-                <th>{{ __('Domain') }}</th>
+                <th>{{ __('Subdomain Name') }}</th>
+                <th>{{ __('Main Domain') }}</th>
+                <th>{{ __('Target / IP') }}</th>
+                <th>{{ __('Webserver') }}</th>
+                <th>{{ __('Target Server') }}</th>
+                <th>{{ __('Publish Status') }}</th>
                 <th>{{ __('Status') }}</th>
                 @canany(['edit:subdomain', 'delete:subdomain'])
                     <th class="text-center">{{ __('Action') }}</th>
@@ -36,24 +39,87 @@
                 <tr>
                     <td>{{ $subdomains->firstItem() + $loop->index }}</td>
                     <td>
-                        {{ $item->name ?? '-' }}
+                        <strong>{{ $item->name }}.{{ $item->domain ? $item->domain->name : '' }}</strong>
                     </td>
                     <td>
-                        {{ $item->ip ?? '-' }}
+                        {{ $item->domain ? $item->domain->name : '-' }}
                     </td>
                     <td>
-                        {{ $item->domain->name ?? '-' }}
+                        <small>
+                            <strong>{{ strtoupper($item->target_type ?? 'proxy') }}:</strong><br>
+                            <code>{{ $item->target_destination ?: ($item->ip ? 'http://' . $item->ip : 'http://127.0.0.1:8000') }}</code>
+                        </small>
                     </td>
                     <td>
-                        @if ($item->status)
-                            <span class="badge badge-success">aktif</span>
+                        <span class="badge {{ $item->webserver_type === 'apache' ? 'bg-warning' : 'bg-success' }}">
+                            {{ strtoupper($item->webserver_type ?? 'NGINX') }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($item->server)
+                            <span class="badge {{ $item->server->type === 'ssh' ? 'bg-purple' : 'bg-secondary' }}">
+                                <i class="fas {{ $item->server->type === 'ssh' ? 'fa-terminal' : 'fa-server' }}"></i>
+                                {{ $item->server->name }}
+                            </span>
                         @else
-                            <span class="badge badge-danger">tidak aktif</span>
+                            <span class="badge bg-secondary"><i class="fas fa-server"></i> Server Lokal</span>
                         @endif
+                    </td>
+                    <td>
+                        @if($item->publish_status === 'published')
+                            <span class="badge bg-success" title="Published: {{ $item->published_at }}"><i class="fas fa-check-circle"></i> Published</span>
+                        @elseif($item->publish_status === 'failed')
+                            <span class="badge bg-danger" title="Publish Error"><i class="fas fa-times-circle"></i> Failed</span>
+                        @else
+                            <span class="badge bg-secondary"><i class="fas fa-clock"></i> Pending</span>
+                        @endif
+
+                        @if($item->publish_log)
+                            <button type="button" class="btn btn-xs btn-link p-0 d-block text-left" data-bs-toggle="modal" data-bs-target="#subLogModal{{ $item->id }}">
+                                <small>View Log</small>
+                            </button>
+                            <div class="modal fade" id="subLogModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content text-left">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Publish Log - {{ $item->name }}</h5>
+                                            <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                                        </div>
+                                        <div class="modal-body bg-dark text-light p-3">
+                                            <pre class="m-0 text-light" style="white-space: pre-wrap;">{{ $item->publish_log }}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </td>
+                    <td>
+                        <form action="{{ route('admin.subdomain.toggle-status', $item->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('PATCH')
+                            <label class="toggle-switch mb-0" title="{{ $item->status ? 'aktif' : 'tidak aktif' }}">
+                                <input type="checkbox" {{ $item->status ? 'checked' : '' }}
+                                    onchange="this.form.submit()" @cannot('edit:subdomain') disabled @endcannot>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </form>
                     </td>
                     @canany(['edit:subdomain', 'delete:subdomain'])
                         <td class="manage-row text-center">
                             @can('edit:subdomain')
+                                <!-- Preview Config Button -->
+                                <button type="button" class="btn btn-sm btn-info text-white m-1" onclick="previewSubdomainConfig('{{ route('admin.subdomain.preview-config', $item->id) }}')" title="Preview Webserver Config">
+                                    <i class="fas fa-code"></i> Preview
+                                </button>
+
+                                <!-- Auto Publish Button -->
+                                <form action="{{ route('admin.subdomain.publish-config', $item->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-success text-white m-1" title="Publish Config Ke Server" onclick="return confirm('Publish konfigurasi untuk subdomain {{ $item->name }}?')">
+                                        <i class="fas fa-paper-plane"></i> Publish
+                                    </button>
+                                </form>
+
                                 @include('admin.subdomain.edit')
                             @endcan
                             @can('delete:subdomain')
@@ -66,5 +132,48 @@
         </tbody>
     </table>
     {{ $subdomains->appends(['perPage' => $perPage, 'search' => $search])->links('vendor.pagination.mobile') }}
+
+    <!-- Shared Preview Config Modal -->
+    <div class="modal fade" id="previewSubConfigModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewSubConfigModalTitle">Subdomain Config Preview</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-left">
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <small class="text-muted" id="previewSubConfigFilename"></small>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="copySubConfigToClipboard()"><i class="fas fa-copy"></i> Copy Config</button>
+                    </div>
+                    <textarea id="previewSubConfigContent" class="form-control font-monospace bg-dark text-light" rows="18" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewSubdomainConfig(url) {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('previewSubConfigModalTitle').innerText = 'Config Preview (' + data.webserver_type.toUpperCase() + ') - ' + data.subdomain_name;
+                        document.getElementById('previewSubConfigFilename').innerText = 'Filename: ' + data.filename;
+                        document.getElementById('previewSubConfigContent').value = data.config;
+                        var modal = new bootstrap.Modal(document.getElementById('previewSubConfigModal'));
+                        modal.show();
+                    }
+                })
+                .catch(err => alert('Error loading config preview'));
+        }
+
+        function copySubConfigToClipboard() {
+            var content = document.getElementById('previewSubConfigContent');
+            content.select();
+            document.execCommand('copy');
+            alert('Config copied to clipboard!');
+        }
+    </script>
 
 </x-admin-table>

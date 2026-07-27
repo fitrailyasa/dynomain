@@ -15,10 +15,6 @@ class SubdomainRequest extends FormRequest
 
     public function rules(): array
     {
-        $db = new Subdomain();
-
-        // dd($db->getConnection()->getDatabaseName());
-
         $id = $this->route('subdomain');
 
         return [
@@ -30,6 +26,14 @@ class SubdomainRequest extends FormRequest
             'ip' => 'required|ip',
             'status' => 'required|in:0,1',
             'domain_id' => 'required|exists:domains,id',
+            'webserver_type' => 'required|in:nginx,apache',
+            'target_type' => 'required|in:proxy,webroot',
+            'target_destination' => 'nullable|string|max:255',
+            'server_id' => 'nullable|exists:servers,id',
+            'ssl_type' => 'required|in:none,cloudflare,certbot,custom',
+            'ssl_cert_path' => 'nullable|string|max:255',
+            'ssl_key_path' => 'nullable|string|max:255',
+            'custom_nginx_config' => 'nullable|string',
         ];
     }
 
@@ -42,9 +46,7 @@ class SubdomainRequest extends FormRequest
             'ip.required' => 'IP is required.',
             'ip.ip' => 'IP must be a valid IP address.',
             'status.required' => 'Status is required.',
-            'status.in' => 'Status must be 0 or 1.',
             'domain_id.required' => 'Domain is required.',
-            'domain_id.exists' => 'Domain does not exist.',
         ];
     }
 }

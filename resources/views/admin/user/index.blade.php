@@ -85,11 +85,15 @@
                         {{ $item->getRoleNames()->implode(', ') }}
                     </td>
                     <td>
-                        @if ($item->email_verified_at)
-                            <span class="badge badge-success">aktif</span>
-                        @else
-                            <span class="badge badge-danger">tidak aktif</span>
-                        @endif
+                        <form action="{{ route('admin.user.toggle-status', $item->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('PATCH')
+                            <label class="toggle-switch mb-0" title="{{ $item->email_verified_at ? 'aktif' : 'tidak aktif' }}">
+                                <input type="checkbox" {{ $item->email_verified_at ? 'checked' : '' }}
+                                    onchange="this.form.submit()" @cannot('edit:user') disabled @endcannot>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </form>
                     </td>
                     @canany(['edit:user', 'delete:user'])
                         <td class="manage-row text-center">
