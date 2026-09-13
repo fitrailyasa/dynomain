@@ -136,6 +136,13 @@ class WebserverPublisherService
             $reloadProc = Process::run($reloadCmd);
             if ($reloadProc->successful()) {
                 $log[] = "[Local Publish] Webserver reloaded successfully.";
+
+                // PM2: auto start for next/nuxt
+                $pm2Result = $this->pm2Manage($item, 'start', 'local');
+                if ($pm2Result) {
+                    $log[] = "[Local Publish] PM2 process started for next/nuxt.";
+                }
+
                 return [
                     'success' => true,
                     'message' => 'Configuration generated and published successfully on local server!',
@@ -146,6 +153,12 @@ class WebserverPublisherService
             }
         } else {
             $log[] = "[Local Publish Warning] Config test failed or skipped: " . $testProc->errorOutput();
+        }
+
+        // PM2: auto start for next/nuxt even if webserver reload failed
+        $pm2Result = $this->pm2Manage($item, 'start', 'local');
+        if ($pm2Result) {
+            $log[] = "[Local Publish] PM2 process started for next/nuxt.";
         }
 
         return [
@@ -215,6 +228,12 @@ class WebserverPublisherService
             $log[] = "[SSH Publish] Executing remote webserver reload: {$reloadCmd}";
             $reloadResult = $ssh->exec($reloadCmd);
             $log[] = "[SSH Publish] Reload output: " . trim($reloadResult);
+
+            // PM2: auto start for next/nuxt
+            $pm2Result = $this->pm2Manage($item, 'start', 'ssh', $ssh);
+            if ($pm2Result) {
+                $log[] = "[SSH Publish] PM2 process started for next/nuxt.";
+            }
 
             return [
                 'success' => true,
@@ -336,6 +355,12 @@ class WebserverPublisherService
                 $log[] = "[SSH Unpublish] Removing symlink: {$remoteSymlink}";
                 $ssh->exec("sudo rm -f " . escapeshellarg($remoteSymlink));
 
+                // PM2: stop for next/nuxt
+                $pm2Result = $this->pm2Manage($item, 'stop', 'ssh', $ssh);
+                if ($pm2Result) {
+                    $log[] = "[SSH Unpublish] PM2 process stopped for next/nuxt.";
+                }
+
                 $webserverType = $item->webserver_type ?? 'nginx';
                 $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
                 $log[] = "[SSH Unpublish] Reloading: {$reloadCmd}";
@@ -363,6 +388,12 @@ class WebserverPublisherService
                     Process::run("sudo rm -f " . escapeshellarg($symlinkTarget));
                     $log[] = "[Local Unpublish] Removed symlink via sudo.";
                 }
+            }
+
+            // PM2: stop for next/nuxt
+            $pm2Result = $this->pm2Manage($item, 'stop', 'local');
+            if ($pm2Result) {
+                $log[] = "[Local Unpublish] PM2 process stopped for next/nuxt.";
             }
 
             $webserverType = $item->webserver_type ?? 'nginx';
@@ -420,6 +451,12 @@ class WebserverPublisherService
                     $log[] = "[SSH Delete] Removed storage copy.";
                 }
 
+                // PM2: stop for next/nuxt
+                $pm2Result = $this->pm2Manage($item, 'stop', 'ssh', $ssh);
+                if ($pm2Result) {
+                    $log[] = "[SSH Delete] PM2 process stopped for next/nuxt.";
+                }
+
                 $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
                 $log[] = "[SSH Delete] Reloading: {$reloadCmd}";
                 $ssh->exec($reloadCmd);
@@ -458,6 +495,12 @@ class WebserverPublisherService
             if (file_exists($storageFile)) {
                 @unlink($storageFile);
                 $log[] = "[Local Delete] Removed storage copy.";
+            }
+
+            // PM2: stop for next/nuxt
+            $pm2Result = $this->pm2Manage($item, 'stop', 'local');
+            if ($pm2Result) {
+                $log[] = "[Local Delete] PM2 process stopped for next/nuxt.";
             }
 
             $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
@@ -590,5 +633,53 @@ class WebserverPublisherService
         }
 
         return '/etc/nginx/sites-enabled';
+    }
+
+    /**
+     * Manage PM2 process for next/nuxt target types.
+     * App name derived from domain name (first segment before first dot).
+     */
+    protected function pm2Manage(Domain|Subdomain $item, string $action, string $serverType, ?SSH2 $ssh = null): bool
+    {
+        $targetType = $item->target_type ?? '';
+
+        if (!in_array($targetType, ['next', 'nuxt'])) {
+            return false;
+        }
+
+        // Derive app name from domain name: geats.elmukoding.com -> geats
+        $domainName = $item instanceof Domain ? $item->name : $item->name . '.' . ($item->domain ? $item->domain->name : '');
+        $appName = strtolower(explode('.', $domainName)[0]);
+
+        // Project path from target_destination or fallback
+        $projectPath = $item->target_destination ?? "/var/www/{$appName}";
+
+        // For next/nuxt, target_destination is the proxy URL, need project path separately
+        // Use a convention: /var/www/{appName}
+        if (str_starts_with($projectPath, 'http')) {
+            $projectPath = "/var/www/{$appName}";
+        }
+
+        $commands = [
+            'start' => "cd {$projectPath} && pm2 start ecosystem.config.js --name {$appName} 2>&1 || pm2 start pnpm --name {$appName} -- start 2>&1 && pm2 save 2>&1",
+            'stop'  => "pm2 stop {$appName} 2>&1 && pm2 delete {$appName} 2>&1 && pm2 save 2>&1",
+        ];
+
+        $cmd = $commands[$action] ?? null;
+        if (!$cmd) {
+            return false;
+        }
+
+        try {
+            if ($serverType === 'ssh' && $ssh) {
+                $output = $ssh->exec($cmd);
+            } else {
+                $output = Process::run($cmd)->output();
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }
