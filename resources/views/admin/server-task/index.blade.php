@@ -34,17 +34,17 @@
                         <!-- Task Type Tabs -->
                         <ul class="nav nav-tabs" role="tablist">
                             <li class="nav-item">
-                                <a class="nav-link active" data-toggle="tab" href="#clone-tab" role="tab">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#clone-tab" role="tab">
                                     <i class="fab fa-github"></i> Clone Repo
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-toggle="tab" href="#install-tab" role="tab">
+                                <a class="nav-link" data-bs-toggle="tab" href="#install-tab" role="tab">
                                     <i class="fas fa-download"></i> Install Library
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-toggle="tab" href="#custom-tab" role="tab">
+                                <a class="nav-link" data-bs-toggle="tab" href="#custom-tab" role="tab">
                                     <i class="fas fa-code"></i> Custom Command
                                 </a>
                             </li>
@@ -52,8 +52,8 @@
 
                         <div class="tab-content mt-3">
                             <!-- Clone Tab -->
-                            <div class="tab-pane active" id="clone-tab" role="tabpanel">
-                                <input type="hidden" name="task_type" value="clone">
+                            <div class="tab-pane fade show active" id="clone-tab" role="tabpanel">
+                                <input type="hidden" name="task_type" value="clone" id="task_type_clone">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('GitHub SSH (PAT)') }}</label>
@@ -79,8 +79,8 @@
                             </div>
 
                             <!-- Install Tab -->
-                            <div class="tab-pane" id="install-tab" role="tabpanel">
-                                <input type="hidden" name="task_type" value="install">
+                            <div class="tab-pane fade" id="install-tab" role="tabpanel">
+                                <input type="hidden" name="task_type" value="install" id="task_type_install">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Package Manager') }}<span class="text-danger">*</span></label>
@@ -107,8 +107,8 @@
                             </div>
 
                             <!-- Custom Tab -->
-                            <div class="tab-pane" id="custom-tab" role="tabpanel">
-                                <input type="hidden" name="task_type" value="custom">
+                            <div class="tab-pane fade" id="custom-tab" role="tabpanel">
+                                <input type="hidden" name="task_type" value="custom" id="task_type_custom">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Custom Command') }}<span class="text-danger">*</span></label>
@@ -175,6 +175,14 @@
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
         document.getElementById('taskForm').submit();
+    });
+
+    // Update task_type based on active tab
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            var target = e.target.getAttribute('href').replace('#', '');
+            document.getElementById('taskForm').querySelector('[name="task_type"]').value = target.replace('-tab', '');
+        });
     });
     </script>
 </x-admin-layout>
