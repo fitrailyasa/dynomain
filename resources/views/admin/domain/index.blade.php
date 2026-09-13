@@ -202,21 +202,17 @@
                 confirmButtonText: '<i class="fas fa-sync-alt"></i> Reload',
                 showLoaderOnConfirm: true,
                 preConfirm: function() {
-                    return fetch('/admin/server/' + serverId + '/reload-nginx', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': getCsrfToken(),
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                    return $.post('/admin/server/' + serverId + '/reload-nginx', {
+                        _token: $('meta[name="csrf-token"]').attr('content')
                     })
-                    .then(function(response) { return response.json(); })
                     .then(function(data) {
                         if (!data.success) throw new Error(data.message);
                         return data;
                     })
-                    .catch(function(error) {
-                        Swal.showValidationMessage(error.message);
+                    .fail(function(xhr) {
+                        var msg = 'Request failed';
+                        try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                        throw new Error(msg);
                     });
                 },
                 allowOutsideClick: false
@@ -227,7 +223,7 @@
                         html: '<strong>' + result.value.message + '</strong><br><br><pre style="text-align:left;font-size:12px;max-height:300px;overflow:auto;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:5px;">' + result.value.log + '</pre>',
                         icon: 'success',
                         confirmButtonColor: '#28a745'
-                    });
+                    }).then(function() { location.reload(); });
                 }
             });
         }
@@ -242,21 +238,17 @@
                 confirmButtonText: '<i class="fas fa-redo"></i> Restart',
                 showLoaderOnConfirm: true,
                 preConfirm: function() {
-                    return fetch('/admin/server/' + serverId + '/restart-nginx', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': getCsrfToken(),
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                    return $.post('/admin/server/' + serverId + '/restart-nginx', {
+                        _token: $('meta[name="csrf-token"]').attr('content')
                     })
-                    .then(function(response) { return response.json(); })
                     .then(function(data) {
                         if (!data.success) throw new Error(data.message);
                         return data;
                     })
-                    .catch(function(error) {
-                        Swal.showValidationMessage(error.message);
+                    .fail(function(xhr) {
+                        var msg = 'Request failed';
+                        try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                        throw new Error(msg);
                     });
                 },
                 allowOutsideClick: false
@@ -267,7 +259,7 @@
                         html: '<strong>' + result.value.message + '</strong><br><br><pre style="text-align:left;font-size:12px;max-height:300px;overflow:auto;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:5px;">' + result.value.log + '</pre>',
                         icon: 'success',
                         confirmButtonColor: '#28a745'
-                    });
+                    }).then(function() { location.reload(); });
                 }
             });
         }
