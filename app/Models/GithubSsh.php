@@ -10,6 +10,8 @@ class GithubSsh extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'github_ssh';
+
     protected $fillable = [
         'name',
         'username',
