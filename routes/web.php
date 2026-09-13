@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminDomainController;
 use App\Http\Controllers\Admin\AdminSubdomainController;
 use App\Http\Controllers\Admin\AdminServerController;
+use App\Http\Controllers\Admin\AdminGithubSshController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('server/bulk-delete', [AdminServerController::class, 'bulkDelete'])->name('server.bulk-delete');
         Route::delete('domain/bulk-delete', [AdminDomainController::class, 'bulkDelete'])->name('domain.bulk-delete');
         Route::delete('subdomain/bulk-delete', [AdminSubdomainController::class, 'bulkDelete'])->name('subdomain.bulk-delete');
+        Route::delete('github-ssh/bulk-delete', [AdminGithubSshController::class, 'bulkDelete'])->name('github-ssh.bulk-delete');
 
         Route::resource('user', AdminUserController::class);
         Route::patch('user/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('user.toggle-status');
@@ -52,6 +54,9 @@ Route::middleware('auth')->group(function () {
         Route::get('subdomain/{id}/preview-config', [AdminSubdomainController::class, 'previewConfig'])->name('subdomain.preview-config');
         Route::post('subdomain/{id}/publish-config', [AdminSubdomainController::class, 'publishConfig'])->name('subdomain.publish-config');
         Route::post('subdomain/{id}/unpublish', [AdminSubdomainController::class, 'unpublish'])->name('subdomain.unpublish');
+
+        Route::resource('github-ssh', AdminGithubSshController::class);
+        Route::patch('github-ssh/{id}/toggle-status', [AdminGithubSshController::class, 'toggleStatus'])->name('github-ssh.toggle-status');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

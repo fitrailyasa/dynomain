@@ -56,6 +56,16 @@
                     </li>
                 @endcan
 
+                @can('view:github-ssh')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.github-ssh.index') }}"
+                            class="nav-link text-white {{ Request::routeIs('admin.github-ssh.index') ? 'aktif' : '' }}">
+                            <i class="nav-icon fab fa-github"></i>
+                            <p>GitHub SSH</p>
+                        </a>
+                    </li>
+                @endcan
+
                 @can('view:domain')
                     <li class="nav-item">
                         <a href="{{ route('admin.domain.index') }}"

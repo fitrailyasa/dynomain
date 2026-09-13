@@ -59,6 +59,8 @@ class WebserverGeneratorService
             $targetDest = $item->target_destination ?? '/var/www/html';
         }
 
+        $redirectUrl = $item->redirect_url ?? '';
+
         $sslType = $item->ssl_type ?? 'cloudflare';
         $sslCertPath = $item->ssl_cert_path ?? '/etc/ssl/certs/ssl-cert-snakeoil.pem';
         $sslKeyPath = $item->ssl_key_path ?? '/etc/ssl/private/ssl-cert-snakeoil.key';
@@ -169,6 +171,12 @@ class WebserverGeneratorService
             $output .= "    }\n\n";
             $output .= "    # Uploads size limit\n";
             $output .= "    client_max_body_size 64M;\n";
+        } elseif ($targetType === 'redirect') {
+            // Redirect config
+            $output .= "    # Redirect to {$redirectUrl}\n";
+            $output .= "    location / {\n";
+            $output .= "        return 301 {$redirectUrl}\$request_uri;\n";
+            $output .= "    }\n";
         } elseif ($targetType === 'webroot') {
             $output .= "    root {$targetDest};\n";
             $output .= "    index index.php index.html index.htm;\n\n";
@@ -316,6 +324,10 @@ class WebserverGeneratorService
             $output .= "        php_value max_execution_time 300\n";
             $output .= "        php_value max_input_time 300\n";
             $output .= "    </IfModule>\n";
+        } elseif ($targetType === 'redirect') {
+            // Redirect config
+            $output .= "    # Redirect to {$redirectUrl}\n";
+            $output .= "    RedirectMatch 301 ^/(.*)$ {$redirectUrl}$1\n";
         } elseif ($targetType === 'webroot') {
             $output .= "    DocumentRoot {$targetDest}\n";
             $output .= "    <Directory {$targetDest}>\n";

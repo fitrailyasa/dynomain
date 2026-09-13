@@ -18,6 +18,7 @@ class Domain extends Model
         'webserver_type',
         'target_type',
         'target_destination',
+        'redirect_url',
         'server_id',
         'ssl_type',
         'ssl_cert_path',

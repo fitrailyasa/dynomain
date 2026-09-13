@@ -77,16 +77,22 @@
                         <!-- Target Type & Destination -->
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ __('Tipe Routing Target') }}<span class="text-danger">*</span></label>
-                            <select class="form-select" name="target_type" required>
+                            <select class="form-select" name="target_type" id="target_type_subdomain_create" required onchange="toggleTargetFieldsSubdomainCreate(this.value)">
                                 <option value="proxy">Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
                                 <option value="webroot">Web Root / Directory (e.g. /var/www/html)</option>
                                 <option value="laravel">Laravel Project (e.g. /var/www/app/public)</option>
                                 <option value="wordpress">WordPress Project (e.g. /var/www/wordpress)</option>
+                                <option value="redirect">Redirect ke Domain Lain</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3" id="target_destination_group_subdomain_create">
                             <label class="form-label">{{ __('Target Destination') }}</label>
-                            <input type="text" class="form-control" name="target_destination" placeholder="http://127.0.0.1:8000 atau /var/www/html">
+                            <input type="text" class="form-control" name="target_destination" id="target_destination_subdomain_create" placeholder="http://127.0.0.1:8000 atau /var/www/html">
+                        </div>
+                        <div class="col-md-6 mb-3" id="redirect_url_group_subdomain_create" style="display:none">
+                            <label class="form-label">{{ __('Redirect Ke URL') }}<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="redirect_url" id="redirect_url_subdomain_create" placeholder="https://example.com/new-page">
+                            <small class="text-muted">Masukkan URL tujuan redirect</small>
                         </div>
 
                         <!-- SSL Config -->
@@ -136,5 +142,23 @@
 <script>
 function toggleCustomConfig(select, textareaId) {
     document.getElementById(textareaId).style.display = select.value === 'default' ? 'none' : 'block';
+}
+function toggleTargetFieldsSubdomainCreate(targetType) {
+    var destGroup = document.getElementById('target_destination_group_subdomain_create');
+    var redirectGroup = document.getElementById('redirect_url_group_subdomain_create');
+    var webserverGroup = document.querySelector('[name="webserver_type"]').closest('.col-md-6');
+    var customConfigGroup = document.getElementById('custom_config_mode_subdomain_create').closest('.col-md-12');
+
+    if (targetType === 'redirect') {
+        destGroup.style.display = 'none';
+        redirectGroup.style.display = 'block';
+        webserverGroup.style.display = 'none';
+        customConfigGroup.style.display = 'none';
+    } else {
+        destGroup.style.display = 'block';
+        redirectGroup.style.display = 'none';
+        webserverGroup.style.display = 'block';
+        customConfigGroup.style.display = 'block';
+    }
 }
 </script>

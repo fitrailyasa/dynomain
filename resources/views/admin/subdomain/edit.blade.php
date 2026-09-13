@@ -69,16 +69,22 @@
                         <!-- Target Type & Destination -->
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ __('Tipe Routing Target') }}<span class="text-danger">*</span></label>
-                            <select class="form-select" name="target_type" required>
+                            <select class="form-select" name="target_type" id="target_type_subdomain_edit_{{ $item->id }}" required onchange="toggleTargetFieldsSubdomainEdit{{ $item->id }}(this.value)">
                                 <option value="proxy" {{ $item->target_type === 'proxy' ? 'selected' : '' }}>Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
                                 <option value="webroot" {{ $item->target_type === 'webroot' ? 'selected' : '' }}>Web Root / Directory (e.g. /var/www/html)</option>
                                 <option value="laravel" {{ $item->target_type === 'laravel' ? 'selected' : '' }}>Laravel Project (e.g. /var/www/app/public)</option>
                                 <option value="wordpress" {{ $item->target_type === 'wordpress' ? 'selected' : '' }}>WordPress Project (e.g. /var/www/wordpress)</option>
+                                <option value="redirect" {{ $item->target_type === 'redirect' ? 'selected' : '' }}>Redirect ke Domain Lain</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3" id="target_destination_group_subdomain_edit_{{ $item->id }}" style="display: {{ $item->target_type === 'redirect' ? 'none' : 'block' }}">
                             <label class="form-label">{{ __('Target Destination') }}</label>
                             <input type="text" class="form-control" name="target_destination" value="{{ $item->target_destination }}" placeholder="http://127.0.0.1:8000 atau /var/www/html">
+                        </div>
+                        <div class="col-md-6 mb-3" id="redirect_url_group_subdomain_edit_{{ $item->id }}" style="display: {{ $item->target_type === 'redirect' ? 'block' : 'none' }}">
+                            <label class="form-label">{{ __('Redirect Ke URL') }}<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="redirect_url" value="{{ $item->redirect_url ?? '' }}" placeholder="https://example.com/new-page">
+                            <small class="text-muted">Masukkan URL tujuan redirect</small>
                         </div>
 
                         <!-- SSL Config -->
@@ -129,8 +135,27 @@
 function toggleCustomConfig(select, textareaId) {
     document.getElementById(textareaId).style.display = select.value === 'default' ? 'none' : 'block';
 }
+function toggleTargetFieldsSubdomainEdit{{ $item->id }}(targetType) {
+    var destGroup = document.getElementById('target_destination_group_subdomain_edit_{{ $item->id }}');
+    var redirectGroup = document.getElementById('redirect_url_group_subdomain_edit_{{ $item->id }}');
+    var webserverGroup = document.querySelector('#editSubdomainModal{{ $item->id }} [name="webserver_type"]').closest('.col-md-6');
+    var customConfigGroup = document.getElementById('custom_config_mode_subdomain_edit_{{ $item->id }}').closest('.col-md-12');
+
+    if (targetType === 'redirect') {
+        destGroup.style.display = 'none';
+        redirectGroup.style.display = 'block';
+        webserverGroup.style.display = 'none';
+        customConfigGroup.style.display = 'none';
+    } else {
+        destGroup.style.display = 'block';
+        redirectGroup.style.display = 'none';
+        webserverGroup.style.display = 'block';
+        customConfigGroup.style.display = 'block';
+    }
+}
 document.addEventListener('DOMContentLoaded', function() {
     var sel = document.getElementById('custom_config_mode_subdomain_edit_{{ $item->id }}');
     if (sel) toggleCustomConfig(sel, 'custom_config_textarea_subdomain_edit_{{ $item->id }}');
+    toggleTargetFieldsSubdomainEdit{{ $item->id }}('{{ $item->target_type }}');
 });
 </script>
