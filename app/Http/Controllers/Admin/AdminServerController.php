@@ -125,7 +125,7 @@ class AdminServerController extends Controller implements HasMiddleware
                 $testResult = $ssh->exec($testCmd);
                 $log[] = "[SSH Reload] Test output: " . trim($testResult);
 
-                $reloadCmd = $server->reload_command ?: 'sudo systemctl reload nginx';
+                $reloadCmd = 'sudo systemctl reload nginx';
                 $log[] = "[SSH Reload] Running: {$reloadCmd}";
                 $reloadResult = $ssh->exec($reloadCmd);
                 $log[] = "[SSH Reload] Reload output: " . trim($reloadResult);
@@ -136,7 +136,7 @@ class AdminServerController extends Controller implements HasMiddleware
                 $testProc = Process::run('sudo nginx -t');
                 $log[] = "[Local Reload] Test output: " . trim($testProc->output() . ' ' . $testProc->errorOutput());
 
-                $reloadCmd = $server->reload_command ?: 'sudo systemctl reload nginx';
+                $reloadCmd = 'sudo systemctl reload nginx';
                 $log[] = "[Local Reload] Running: {$reloadCmd}";
                 $reloadProc = Process::run($reloadCmd);
                 $log[] = "[Local Reload] Reload output: " . trim($reloadProc->output() . ' ' . $reloadProc->errorOutput());
@@ -172,7 +172,7 @@ class AdminServerController extends Controller implements HasMiddleware
                 $testResult = $ssh->exec($testCmd);
                 $log[] = "[SSH Restart] Test output: " . trim($testResult);
 
-                $restartCmd = str_replace('reload', 'restart', $server->reload_command ?: 'sudo systemctl reload nginx');
+                $restartCmd = 'sudo systemctl restart nginx';
                 $log[] = "[SSH Restart] Running: {$restartCmd}";
                 $restartResult = $ssh->exec($restartCmd);
                 $log[] = "[SSH Restart] Restart output: " . trim($restartResult);
@@ -183,7 +183,7 @@ class AdminServerController extends Controller implements HasMiddleware
                 $testProc = Process::run('sudo nginx -t');
                 $log[] = "[Local Restart] Test output: " . trim($testProc->output() . ' ' . $testProc->errorOutput());
 
-                $restartCmd = str_replace('reload', 'restart', $server->reload_command ?: 'sudo systemctl reload nginx');
+                $restartCmd = 'sudo systemctl restart nginx';
                 $bgCmd = 'nohup bash -c "sleep 2 && ' . $restartCmd . '" > /dev/null 2>&1 & echo $!';
                 $log[] = "[Local Restart] Running in background (2s delay): {$restartCmd}";
                 $restartProc = Process::run($bgCmd);

@@ -59,36 +59,12 @@
                             </div>
                         </div>
 
-                        <!-- Webserver Section -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Tipe Webserver Target') }}<span class="text-danger">*</span></label>
-                            <select class="form-select" name="webserver_type" required>
-                                <option value="nginx">Nginx</option>
-                                <option value="apache">Apache</option>
-                            </select>
-                        </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ __('Status Server') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="status" required>
                                 <option value="1">Aktif</option>
                                 <option value="0">Tidak Aktif</option>
                             </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Directory Config Webserver') }}<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="config_path" value="/etc/nginx/sites-available" required>
-                            <small class="text-muted">Nginx: <code>/etc/nginx/sites-available</code> | Apache: <code>/etc/apache2/sites-available</code></small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Directory Symlink (Sites-Enabled)') }}</label>
-                            <input type="text" class="form-control" name="symlink_path" value="/etc/nginx/sites-enabled">
-                            <small class="text-muted">Nginx: <code>/etc/nginx/sites-enabled</code> | Apache: <code>/etc/apache2/sites-enabled</code></small>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">{{ __('Command Reload Webserver') }}<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="reload_command" value="sudo systemctl reload nginx" required>
-                            <small class="text-muted">Contoh: <code>sudo systemctl reload nginx</code> atau <code>sudo systemctl reload apache2</code></small>
                         </div>
                     </div>
                 </div>

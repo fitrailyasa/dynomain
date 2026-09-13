@@ -36,10 +36,6 @@ class WebserverPublisherService
             $targetServer = Server::where('type', 'local')->first() ?? new Server([
                 'name' => 'Local Server Default',
                 'type' => 'local',
-                'webserver_type' => $item->webserver_type ?? 'nginx',
-                'config_path' => ($item->webserver_type === 'apache') ? '/etc/apache2/sites-available' : '/etc/nginx/sites-available',
-                'symlink_path' => ($item->webserver_type === 'apache') ? '/etc/apache2/sites-enabled' : '/etc/nginx/sites-enabled',
-                'reload_command' => ($item->webserver_type === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx',
             ]);
         }
 
@@ -66,7 +62,7 @@ class WebserverPublisherService
     public function publishLocal(Domain|Subdomain $item, Server $server): array
     {
         $filename = $this->generator->getFilename($item);
-        $configContent = $this->generator->generate($item, $item->webserver_type ?? $server->webserver_type);
+        $configContent = $this->generator->generate($item, $item->webserver_type);
 
         $log = [];
         $log[] = "[Local Publish] Starting configuration publishing for file: {$filename}";
@@ -127,9 +123,9 @@ class WebserverPublisherService
         }
 
         // Run config test and reload
-        $webserverType = $item->webserver_type ?? $server->webserver_type ?? 'nginx';
+        $webserverType = $item->webserver_type ?? 'nginx';
         $testCmd = ($webserverType === 'apache') ? 'sudo apache2ctl configtest' : 'sudo nginx -t';
-        $reloadCmd = $server->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+        $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
 
         $log[] = "[Local Publish] Testing webserver configuration: {$testCmd}";
         $testProc = Process::run($testCmd);
@@ -178,7 +174,7 @@ class WebserverPublisherService
             $log[] = "[SSH Publish] Connected to SSH server successfully.";
 
             $filename = $this->generator->getFilename($item);
-            $configContent = $this->generator->generate($item, $item->webserver_type ?? $server->webserver_type);
+            $configContent = $this->generator->generate($item, $item->webserver_type);
 
             $configPath = $this->getConfigPath($server, $item->webserver_type);
             $symlinkPath = $this->getSymlinkPath($server, $item->webserver_type);
@@ -208,14 +204,14 @@ class WebserverPublisherService
             }
 
             // Test configuration
-            $webserverType = $item->webserver_type ?? $server->webserver_type ?? 'nginx';
+            $webserverType = $item->webserver_type ?? 'nginx';
             $testCmd = ($webserverType === 'apache') ? 'sudo apache2ctl configtest' : 'sudo nginx -t';
             $log[] = "[SSH Publish] Running remote config test: {$testCmd}";
             $testResult = $ssh->exec($testCmd);
             $log[] = "[SSH Publish] Test output: " . trim($testResult);
 
             // Reload command
-            $reloadCmd = $server->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+            $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
             $log[] = "[SSH Publish] Executing remote webserver reload: {$reloadCmd}";
             $reloadResult = $ssh->exec($reloadCmd);
             $log[] = "[SSH Publish] Reload output: " . trim($reloadResult);
@@ -334,16 +330,14 @@ class WebserverPublisherService
                 $ssh = $this->createSshConnection($targetServer);
                 $log[] = "[SSH Unpublish] Connected.";
 
-                $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
-                $remoteSymlink = $symlinkPath ? "{$symlinkPath}/{$filename}" : '';
+                $symlinkPath = $this->getSymlinkPath($targetServer, $item->webserver_type);
+                $remoteSymlink = "{$symlinkPath}/{$filename}";
 
-                if (!empty($remoteSymlink)) {
-                    $log[] = "[SSH Unpublish] Removing symlink: {$remoteSymlink}";
-                    $ssh->exec("sudo rm -f " . escapeshellarg($remoteSymlink));
-                }
+                $log[] = "[SSH Unpublish] Removing symlink: {$remoteSymlink}";
+                $ssh->exec("sudo rm -f " . escapeshellarg($remoteSymlink));
 
-                $webserverType = $targetServer->webserver_type ?? 'nginx';
-                $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+                $webserverType = $item->webserver_type ?? 'nginx';
+                $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
                 $log[] = "[SSH Unpublish] Reloading: {$reloadCmd}";
                 $ssh->exec($reloadCmd);
 
@@ -356,8 +350,8 @@ class WebserverPublisherService
             }
         } else {
             $log[] = "[Local Unpublish] Removing symlink for: {$filename}";
-            $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
-            $symlinkTarget = $symlinkPath ? $symlinkPath . '/' . $filename : '';
+            $symlinkPath = $this->getSymlinkPath($targetServer, $item->webserver_type);
+            $symlinkTarget = "{$symlinkPath}/{$filename}";
 
             if (!empty($symlinkTarget)) {
                 try {
@@ -371,8 +365,8 @@ class WebserverPublisherService
                 }
             }
 
-            $webserverType = $targetServer->webserver_type ?? 'nginx';
-            $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+            $webserverType = $item->webserver_type ?? 'nginx';
+            $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
             $log[] = "[Local Unpublish] Reloading: {$reloadCmd}";
             Process::run($reloadCmd);
 
@@ -400,7 +394,7 @@ class WebserverPublisherService
         $filename = $this->generator->getFilename($item);
         $log = [];
 
-        $webserverType = $item->webserver_type ?? $targetServer->webserver_type ?? 'nginx';
+        $webserverType = $item->webserver_type ?? 'nginx';
 
         if ($targetServer->type === 'ssh') {
             $log[] = "[SSH Delete] Connecting to {$targetServer->username}@{$targetServer->host}";
@@ -426,7 +420,7 @@ class WebserverPublisherService
                     $log[] = "[SSH Delete] Removed storage copy.";
                 }
 
-                $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+                $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
                 $log[] = "[SSH Delete] Reloading: {$reloadCmd}";
                 $ssh->exec($reloadCmd);
 
@@ -466,7 +460,7 @@ class WebserverPublisherService
                 $log[] = "[Local Delete] Removed storage copy.";
             }
 
-            $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+            $reloadCmd = ($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx';
             $log[] = "[Local Delete] Reloading: {$reloadCmd}";
             Process::run($reloadCmd);
 
@@ -481,7 +475,7 @@ class WebserverPublisherService
     public function cleanupOldConfig(Domain|Subdomain $item, string $oldFilename, ?Server $server = null, ?string $oldWebserverType = null): array
     {
         $newFilename = $this->generator->getFilename($item);
-        $newWebserverType = $item->webserver_type ?? $server?->webserver_type ?? 'nginx';
+        $newWebserverType = $item->webserver_type ?? 'nginx';
 
         // If nothing changed, nothing to cleanup
         if ($oldFilename === $newFilename && $oldWebserverType === $newWebserverType) {
@@ -575,23 +569,13 @@ class WebserverPublisherService
      */
     protected function getConfigPath(Server $server, ?string $webserverType): string
     {
-        $webserverType = $webserverType ?? $server->webserver_type ?? 'nginx';
-        $serverPath = $server->config_path ?? '';
+        $webserverType = $webserverType ?? 'nginx';
 
         if ($webserverType === 'apache') {
-            // If server path is for nginx, use apache default
-            if ($serverPath && str_contains($serverPath, 'nginx')) {
-                return '/etc/apache2/sites-available';
-            }
-            return rtrim($serverPath ?: '/etc/apache2/sites-available', '/\\');
+            return '/etc/apache2/sites-available';
         }
 
-        // If server path is for apache, use nginx default
-        if ($serverPath && str_contains($serverPath, 'apache')) {
-            return '/etc/nginx/sites-available';
-        }
-
-        return rtrim($serverPath ?: '/etc/nginx/sites-available', '/\\');
+        return '/etc/nginx/sites-available';
     }
 
     /**
@@ -599,15 +583,14 @@ class WebserverPublisherService
      */
     protected function getSymlinkPath(Server $server, ?string $webserverType): string
     {
-        $webserverType = $webserverType ?? $server->webserver_type ?? 'nginx';
-        $serverPath = $server->symlink_path ?? '';
+        $webserverType = $webserverType ?? 'nginx';
 
         if ($webserverType === 'apache') {
-            // If server path is for nginx, use apache default
-            if ($serverPath && str_contains($serverPath, 'nginx')) {
-                return '/etc/apache2/sites-enabled';
-            }
-            return rtrim($serverPath ?: '/etc/apache2/sites-enabled', '/\\');
+            return '/etc/apache2/sites-enabled';
+        }
+
+        return '/etc/nginx/sites-enabled';
+    }
         }
 
         // If server path is for apache, use nginx default

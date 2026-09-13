@@ -61,33 +61,12 @@
                             </div>
                         </div>
 
-                        <!-- Webserver Section -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Tipe Webserver Target') }}<span class="text-danger">*</span></label>
-                            <select class="form-select" name="webserver_type" required>
-                                <option value="nginx" {{ $item->webserver_type === 'nginx' ? 'selected' : '' }}>Nginx</option>
-                                <option value="apache" {{ $item->webserver_type === 'apache' ? 'selected' : '' }}>Apache</option>
-                            </select>
-                        </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ __('Status Server') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="status" required>
                                 <option value="1" {{ $item->status ? 'selected' : '' }}>Aktif</option>
                                 <option value="0" {{ !$item->status ? 'selected' : '' }}>Tidak Aktif</option>
                             </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Directory Config Webserver') }}<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="config_path" value="{{ $item->config_path }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Directory Symlink (Sites-Enabled)') }}</label>
-                            <input type="text" class="form-control" name="symlink_path" value="{{ $item->symlink_path }}">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">{{ __('Command Reload Webserver') }}<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="reload_command" value="{{ $item->reload_command }}" required>
                         </div>
                     </div>
                 </div>

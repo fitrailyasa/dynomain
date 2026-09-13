@@ -35,8 +35,6 @@
                 <th>{{ __('Nama Server') }}</th>
                 <th>{{ __('Tipe Server') }}</th>
                 <th>{{ __('Host / SSH') }}</th>
-                <th>{{ __('Webserver') }}</th>
-                <th>{{ __('Path Config') }}</th>
                 <th>{{ __('Status') }}</th>
                 @canany(['edit:server', 'delete:server'])
                     <th class="text-center">{{ __('Action') }}</th>
@@ -68,14 +66,6 @@
                         @else
                             <span class="text-muted">localhost (Server Ini)</span>
                         @endif
-                    </td>
-                    <td>
-                        <span class="badge {{ $item->webserver_type === 'apache' ? 'bg-warning' : 'bg-success' }}">
-                            {{ strtoupper($item->webserver_type) }}
-                        </span>
-                    </td>
-                    <td>
-                        <small><code>{{ $item->config_path }}</code></small>
                     </td>
                     <td>
                         <form action="{{ route('admin.server.toggle-status', $item->id) }}" method="POST" class="d-inline">

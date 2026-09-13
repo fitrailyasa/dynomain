@@ -22,10 +22,6 @@ class ServerRequest extends FormRequest
             'auth_type' => 'required_if:type,ssh|in:password,key',
             'password' => 'nullable|string',
             'private_key' => 'nullable|string',
-            'webserver_type' => 'required|in:nginx,apache',
-            'config_path' => 'required|string|max:255',
-            'symlink_path' => 'nullable|string|max:255',
-            'reload_command' => 'required|string|max:255',
             'status' => 'required|in:0,1',
         ];
     }

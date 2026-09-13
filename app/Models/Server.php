@@ -19,10 +19,6 @@ class Server extends Model
         'auth_type',
         'password',
         'private_key',
-        'webserver_type',
-        'config_path',
-        'symlink_path',
-        'reload_command',
         'status',
     ];
 
