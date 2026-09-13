@@ -94,7 +94,16 @@
                         <!-- Custom Directives -->
                         <div class="col-md-12 mb-3">
                             <label class="form-label">{{ __('Custom Directives (Nginx / Apache Header/Rules)') }}</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="fas fa-cog"></i></span>
+                                <select class="form-select" name="custom_config_mode">
+                                    <option value="default" {{ ($item->custom_config_mode ?? 'default') === 'default' ? 'selected' : '' }}>Default - Pakai config bawaan Nginx/Apache</option>
+                                    <option value="replace" {{ ($item->custom_config_mode ?? 'default') === 'replace' ? 'selected' : '' }}>Replace - Timpa semua dengan custom directives</option>
+                                    <option value="add" {{ ($item->custom_config_mode ?? 'default') === 'add' ? 'selected' : '' }}>Add - Gabungkan config bawaan + custom directives</option>
+                                </select>
+                            </div>
                             <textarea class="form-control font-monospace" name="custom_nginx_config" rows="3">{{ $item->custom_nginx_config }}</textarea>
+                            <small class="text-muted">Pilih mode terlebih dahulu. <strong>Default</strong> = ignore custom directives. <strong>Replace</strong> = timpa semua. <strong>Add</strong> = gabungkan.</small>
                         </div>
                     </div>
                 </div>

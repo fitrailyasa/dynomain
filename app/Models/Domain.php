@@ -23,6 +23,7 @@ class Domain extends Model
         'ssl_cert_path',
         'ssl_key_path',
         'custom_nginx_config',
+        'custom_config_mode',
         'published_at',
         'publish_status',
         'publish_log',

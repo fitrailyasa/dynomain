@@ -54,6 +54,11 @@ class WebserverGeneratorService
         $sslCertPath = $item->ssl_cert_path ?? '/etc/ssl/certs/ssl-cert-snakeoil.pem';
         $sslKeyPath = $item->ssl_key_path ?? '/etc/ssl/private/ssl-cert-snakeoil.key';
         $customConfig = trim($item->custom_nginx_config ?? '');
+        $customConfigMode = $item->custom_config_mode ?? 'default';
+
+        if ($customConfigMode === 'replace' && !empty($customConfig)) {
+            return $this->generateNginxReplaceConfig($item, $customConfig, $domainName, $serverNames);
+        }
 
         $cloudflareIps = [
             '103.21.244.0/22',
@@ -126,12 +131,26 @@ class WebserverGeneratorService
             $output .= "    }\n";
         }
 
-        if (!empty($customConfig)) {
-            $output .= "\n    # Custom Directives\n";
+        if (!empty($customConfig) && $customConfigMode === 'add') {
+            $output .= "\n    # Custom Directives (Add Mode)\n";
             $output .= "    " . str_replace("\n", "\n    ", $customConfig) . "\n";
         }
 
         $output .= "}\n";
+
+        return $output;
+    }
+
+    /**
+     * Generate Nginx config with REPLACE mode (custom directives only).
+     */
+    protected function generateNginxReplaceConfig(Domain|Subdomain $item, string $customConfig, string $domainName, string $serverNames): string
+    {
+        $output = "# Custom Nginx Config (Replace Mode) by Dynomain\n";
+        $output .= "# Domain: {$domainName}\n";
+        $output .= "# Generated At: " . date('Y-m-d H:i:s') . "\n\n";
+
+        $output .= $customConfig . "\n";
 
         return $output;
     }
@@ -148,6 +167,13 @@ class WebserverGeneratorService
         $targetDest = $item->target_destination ?? ($item->ip ? "http://{$item->ip}" : 'http://127.0.0.1:8000');
         if ($targetType === 'proxy' && !preg_match('/^https?:\/\//i', $targetDest)) {
             $targetDest = "http://{$targetDest}";
+        }
+
+        $customConfig = trim($item->custom_nginx_config ?? '');
+        $customConfigMode = $item->custom_config_mode ?? 'default';
+
+        if ($customConfigMode === 'replace' && !empty($customConfig)) {
+            return $this->generateApacheReplaceConfig($domainName, $customConfig);
         }
 
         $cloudflareIps = [
@@ -183,7 +209,26 @@ class WebserverGeneratorService
             $output .= "    ProxyPassReverse / {$targetDest}/\n";
         }
 
+        if (!empty($customConfig) && $customConfigMode === 'add') {
+            $output .= "\n    # Custom Directives (Add Mode)\n";
+            $output .= "    " . str_replace("\n", "\n    ", $customConfig) . "\n";
+        }
+
         $output .= "</VirtualHost>\n";
+
+        return $output;
+    }
+
+    /**
+     * Generate Apache config with REPLACE mode (custom directives only).
+     */
+    protected function generateApacheReplaceConfig(string $domainName, string $customConfig): string
+    {
+        $output = "# Custom Apache Config (Replace Mode) by Dynomain\n";
+        $output .= "# Domain: {$domainName}\n";
+        $output .= "# Generated At: " . date('Y-m-d H:i:s') . "\n\n";
+
+        $output .= $customConfig . "\n";
 
         return $output;
     }

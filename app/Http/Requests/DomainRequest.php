@@ -34,6 +34,7 @@ class DomainRequest extends FormRequest
             'ssl_cert_path' => 'nullable|string|max:255',
             'ssl_key_path' => 'nullable|string|max:255',
             'custom_nginx_config' => 'nullable|string',
+            'custom_config_mode' => 'nullable|in:default,replace,add',
         ];
     }
 
