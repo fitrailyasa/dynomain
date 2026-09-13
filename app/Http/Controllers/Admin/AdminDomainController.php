@@ -24,7 +24,7 @@ class AdminDomainController extends Controller implements HasMiddleware
             new Middleware('permission:view:domain', only: ['index']),
             new Middleware('permission:create:domain', only: ['store']),
             new Middleware('permission:edit:domain', only: ['update', 'toggleStatus', 'previewConfig', 'publishConfig', 'unpublish']),
-            new Middleware('permission:delete:domain', only: ['destroy']),
+            new Middleware('permission:delete:domain', only: ['destroy', 'bulkDelete']),
         ];
     }
 
@@ -151,5 +151,25 @@ class AdminDomainController extends Controller implements HasMiddleware
         $domain->forceDelete();
 
         return back()->with('success', 'Successfully Deleted domain & config removed from server!');
+    }
+
+    public function bulkDelete(Request $request, WebserverPublisherService $publisher)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected for deletion.');
+        }
+
+        $domains = Domain::whereIn('id', $ids)->get();
+        $deleted = 0;
+
+        foreach ($domains as $domain) {
+            $publisher->deleteConfig($domain, $domain->server);
+            $domain->forceDelete();
+            $deleted++;
+        }
+
+        return back()->with('success', "Successfully deleted {$deleted} domain(s) & configs removed from server!");
     }
 }

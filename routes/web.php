@@ -25,25 +25,30 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('user', AdminUserController::class);
         Route::patch('user/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('user.toggle-status');
+        Route::delete('user/bulk-delete', [AdminUserController::class, 'bulkDelete'])->name('user.bulk-delete');
 
         Route::resource('role', AdminRoleController::class);
+        Route::delete('role/bulk-delete', [AdminRoleController::class, 'bulkDelete'])->name('role.bulk-delete');
         
         Route::resource('server', AdminServerController::class);
         Route::patch('server/{id}/toggle-status', [AdminServerController::class, 'toggleStatus'])->name('server.toggle-status');
         Route::post('server/{id}/test-connection', [AdminServerController::class, 'testConnection'])->name('server.test-connection');
         Route::post('server/{id}/reload-nginx', [AdminServerController::class, 'reloadNginx'])->name('server.reload-nginx');
         Route::post('server/{id}/restart-nginx', [AdminServerController::class, 'restartNginx'])->name('server.restart-nginx');
+        Route::delete('server/bulk-delete', [AdminServerController::class, 'bulkDelete'])->name('server.bulk-delete');
 
         Route::resource('domain', AdminDomainController::class);
         Route::patch('domain/{id}/toggle-status', [AdminDomainController::class, 'toggleStatus'])->name('domain.toggle-status');
         Route::get('domain/{id}/preview-config', [AdminDomainController::class, 'previewConfig'])->name('domain.preview-config');
         Route::post('domain/{id}/publish-config', [AdminDomainController::class, 'publishConfig'])->name('domain.publish-config');
         Route::post('domain/{id}/unpublish', [AdminDomainController::class, 'unpublish'])->name('domain.unpublish');
+        Route::delete('domain/bulk-delete', [AdminDomainController::class, 'bulkDelete'])->name('domain.bulk-delete');
 
         Route::resource('subdomain', AdminSubdomainController::class);
         Route::patch('subdomain/{id}/toggle-status', [AdminSubdomainController::class, 'toggleStatus'])->name('subdomain.toggle-status');
         Route::get('subdomain/{id}/preview-config', [AdminSubdomainController::class, 'previewConfig'])->name('subdomain.preview-config');
         Route::post('subdomain/{id}/publish-config', [AdminSubdomainController::class, 'publishConfig'])->name('subdomain.publish-config');
+        Route::delete('subdomain/bulk-delete', [AdminSubdomainController::class, 'bulkDelete'])->name('subdomain.bulk-delete');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

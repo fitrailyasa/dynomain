@@ -15,12 +15,22 @@
     <!-- Search & Pagination -->
     <x-slot name="search">
         @include('components.search')
+        @can('delete:domain')
+            <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" disabled onclick="bulkDeleteConfirm('domain')">
+                <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+            </button>
+        @endcan
     </x-slot>
 
     <!-- Table -->
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
+                @can('delete:domain')
+                    <th class="text-center" style="width: 40px;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this, 'domain')">
+                    </th>
+                @endcan
                 <th>{{ __('No') }}</th>
                 <th>{{ __('Domain Name') }}</th>
                 <th>{{ __('Target / IP') }}</th>
@@ -36,6 +46,11 @@
         <tbody>
             @foreach ($domains as $item)
                 <tr>
+                    @can('delete:domain')
+                        <td class="text-center">
+                            <input type="checkbox" name="ids[]" value="{{ $item->id }}" class="item-checkbox domain-checkbox" onchange="updateBulkBtn('domain')">
+                        </td>
+                    @endcan
                     <td>{{ $domains->firstItem() + $loop->index }}</td>
                     <td>
                         <strong>{{ $item->name }}</strong>
@@ -196,6 +211,56 @@
             content.select();
             document.execCommand('copy');
             alert('Config copied to clipboard!');
+        }
+
+        function toggleSelectAll(checkbox, entity) {
+            document.querySelectorAll('.' + entity + '-checkbox').forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+            updateBulkBtn(entity);
+        }
+
+        function updateBulkBtn(entity) {
+            var checked = document.querySelectorAll('.' + entity + '-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = checked;
+            document.getElementById('bulkDeleteBtn').disabled = checked === 0;
+        }
+
+        function bulkDeleteConfirm(entity) {
+            var checked = document.querySelectorAll('.' + entity + '-checkbox:checked');
+            var ids = [];
+            checked.forEach(function(cb) { ids.push(cb.value); });
+
+            if (ids.length === 0) return;
+
+            if (confirm('Hapus ' + ids.length + ' item yang dipilih? Config akan dihapus dari server.')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/' + entity + '/bulk-delete';
+
+                var csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = '{{ csrf_token() }}';
+                form.appendChild(csrf);
+
+                var method = document.createElement('input');
+                method.type = 'hidden';
+                method.name = '_method';
+                method.value = 'DELETE';
+                form.appendChild(method);
+
+                ids.forEach(function(id) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
     </script>
 

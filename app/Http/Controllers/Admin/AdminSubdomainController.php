@@ -25,7 +25,7 @@ class AdminSubdomainController extends Controller implements HasMiddleware
             new Middleware('permission:view:subdomain', only: ['index']),
             new Middleware('permission:create:subdomain', only: ['store']),
             new Middleware('permission:edit:subdomain', only: ['update', 'toggleStatus', 'previewConfig', 'publishConfig']),
-            new Middleware('permission:delete:subdomain', only: ['destroy']),
+            new Middleware('permission:delete:subdomain', only: ['destroy', 'bulkDelete']),
         ];
     }
 
@@ -132,5 +132,18 @@ class AdminSubdomainController extends Controller implements HasMiddleware
     {
         Subdomain::findOrFail($id)->forceDelete();
         return back()->with('success', 'Successfully Delete ' . $this->title . '!');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected for deletion.');
+        }
+
+        Subdomain::whereIn('id', $ids)->forceDelete();
+
+        return back()->with('success', 'Successfully deleted ' . count($ids) . ' subdomain(s)!');
     }
 }

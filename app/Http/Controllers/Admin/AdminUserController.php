@@ -24,7 +24,7 @@ class AdminUserController extends Controller implements HasMiddleware
             new Middleware('permission:create:user', only: ['store']),
             new Middleware('permission:edit:user', only: ['update']),
             new Middleware('permission:edit:user', only: ['toggleStatus']),
-            new Middleware('permission:delete:user', only: ['destroy']),
+            new Middleware('permission:delete:user', only: ['destroy', 'bulkDelete']),
         ];
     }
 
@@ -116,5 +116,21 @@ class AdminUserController extends Controller implements HasMiddleware
     {
         User::findOrFail($id)->forceDelete();
         return back()->with('success', 'Successfully Delete ' . $this->title . '!');
+    }
+
+    public function bulkDelete(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected for deletion.');
+        }
+
+        // Prevent deleting super admin
+        $ids = array_filter($ids, fn($id) => User::find($id)?->email !== 'super@admin.com');
+
+        User::whereIn('id', $ids)->forceDelete();
+
+        return back()->with('success', 'Successfully deleted ' . count($ids) . ' user(s)!');
     }
 }

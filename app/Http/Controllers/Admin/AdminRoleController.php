@@ -21,7 +21,7 @@ class AdminRoleController extends Controller implements HasMiddleware
             new Middleware('permission:view:role', only: ['index']),
             new Middleware('permission:create:role', only: ['store']),
             new Middleware('permission:edit:role', only: ['update']),
-            new Middleware('permission:delete:role', only: ['destroy']),
+            new Middleware('permission:delete:role', only: ['destroy', 'bulkDelete']),
         ];
     }
 
@@ -106,5 +106,19 @@ class AdminRoleController extends Controller implements HasMiddleware
     {
         Role::findOrFail($id)->forceDelete();
         return back()->with('success', 'Successfully Delete Data ' . $this->title . '!');
+    }
+
+    // Handle bulk delete roles
+    public function bulkDelete(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected for deletion.');
+        }
+
+        Role::whereIn('id', $ids)->forceDelete();
+
+        return back()->with('success', 'Successfully deleted ' . count($ids) . ' role(s)!');
     }
 }

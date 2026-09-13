@@ -22,7 +22,7 @@ class AdminServerController extends Controller implements HasMiddleware
             new Middleware('permission:view:server', only: ['index']),
             new Middleware('permission:create:server', only: ['store']),
             new Middleware('permission:edit:server', only: ['update', 'toggleStatus', 'testConnection', 'reloadNginx', 'restartNginx']),
-            new Middleware('permission:delete:server', only: ['destroy']),
+            new Middleware('permission:delete:server', only: ['destroy', 'bulkDelete']),
         ];
     }
 
@@ -234,5 +234,18 @@ class AdminServerController extends Controller implements HasMiddleware
     {
         Server::findOrFail($id)->forceDelete();
         return back()->with('success', 'Successfully deleted server!');
+    }
+
+    public function bulkDelete(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected for deletion.');
+        }
+
+        Server::whereIn('id', $ids)->forceDelete();
+
+        return back()->with('success', 'Successfully deleted ' . count($ids) . ' server(s)!');
     }
 }

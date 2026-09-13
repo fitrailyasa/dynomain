@@ -15,12 +15,22 @@
     <!-- Search & Pagination -->
     <x-slot name="search">
         @include('components.search')
+        @can('delete:user')
+            <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" disabled onclick="bulkDeleteConfirm('user')">
+                <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+            </button>
+        @endcan
     </x-slot>
 
     <!-- Table -->
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
+                @can('delete:user')
+                    <th class="text-center" style="width: 40px;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this, 'user')">
+                    </th>
+                @endcan
                 <th>{{ __('No') }}</th>
                 <th>{{ __('Profile') }}</th>
                 <th>{{ __('Name') }}</th>
@@ -35,6 +45,11 @@
         <tbody>
             @foreach ($users->where('email', '!=', 'super@admin.com') as $item)
                 <tr>
+                    @can('delete:user')
+                        <td class="text-center">
+                            <input type="checkbox" name="ids[]" value="{{ $item->id }}" class="item-checkbox user-checkbox" onchange="updateBulkBtn('user')">
+                        </td>
+                    @endcan
                     <td>{{ $users->firstItem() + $loop->index }}</td>
                     <td>
                         @if ($item->img == null)
@@ -110,5 +125,57 @@
         </tbody>
     </table>
     {{ $users->appends(['perPage' => $perPage, 'search' => $search])->links('vendor.pagination.mobile') }}
+
+    <script>
+        function toggleSelectAll(checkbox, entity) {
+            document.querySelectorAll('.' + entity + '-checkbox').forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+            updateBulkBtn(entity);
+        }
+
+        function updateBulkBtn(entity) {
+            var checked = document.querySelectorAll('.' + entity + '-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = checked;
+            document.getElementById('bulkDeleteBtn').disabled = checked === 0;
+        }
+
+        function bulkDeleteConfirm(entity) {
+            var checked = document.querySelectorAll('.' + entity + '-checkbox:checked');
+            var ids = [];
+            checked.forEach(function(cb) { ids.push(cb.value); });
+
+            if (ids.length === 0) return;
+
+            if (confirm('Hapus ' + ids.length + ' user yang dipilih?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/' + entity + '/bulk-delete';
+
+                var csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = '{{ csrf_token() }}';
+                form.appendChild(csrf);
+
+                var method = document.createElement('input');
+                method.type = 'hidden';
+                method.name = '_method';
+                method.value = 'DELETE';
+                form.appendChild(method);
+
+                ids.forEach(function(id) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
 
 </x-admin-table>
