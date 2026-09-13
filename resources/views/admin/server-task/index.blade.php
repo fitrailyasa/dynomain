@@ -13,6 +13,7 @@
 
                     <form method="POST" action="{{ route('admin.server-task.execute') }}" id="taskForm">
                         @csrf
+                        <input type="hidden" name="task_type" value="clone" id="taskTypeInput">
 
                         <!-- Server Selection -->
                         <div class="mb-3">
@@ -53,7 +54,6 @@
                         <div class="tab-content mt-3">
                             <!-- Clone Tab -->
                             <div class="tab-pane fade show active" id="clone-tab" role="tabpanel">
-                                <input type="hidden" name="task_type" value="clone" id="task_type_clone">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('GitHub SSH (PAT)') }}</label>
@@ -80,7 +80,6 @@
 
                             <!-- Install Tab -->
                             <div class="tab-pane fade" id="install-tab" role="tabpanel">
-                                <input type="hidden" name="task_type" value="install" id="task_type_install">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Package Manager') }}<span class="text-danger">*</span></label>
@@ -108,7 +107,6 @@
 
                             <!-- Custom Tab -->
                             <div class="tab-pane fade" id="custom-tab" role="tabpanel">
-                                <input type="hidden" name="task_type" value="custom" id="task_type_custom">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Custom Command') }}<span class="text-danger">*</span></label>
@@ -180,8 +178,8 @@
     // Update task_type based on active tab
     document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(tab) {
         tab.addEventListener('shown.bs.tab', function(e) {
-            var target = e.target.getAttribute('href').replace('#', '');
-            document.getElementById('taskForm').querySelector('[name="task_type"]').value = target.replace('-tab', '');
+            var target = e.target.getAttribute('href').replace('#', '').replace('-tab', '');
+            document.getElementById('taskTypeInput').value = target;
         });
     });
     </script>
