@@ -157,7 +157,7 @@
 
                                 <div class="mb-3">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="chmod_recursive" value="1" id="chmod_recursive">
+                                        <input class="form-check-input" type="checkbox" name="chmod_recursive" value="1" id="chmod_recursive" checked>
                                         <label class="form-check-label" for="chmod_recursive">
                                             Recursive (-R) - Terapkan ke semua subfolder/file
                                         </label>
@@ -187,7 +187,7 @@
 
                                 <div class="mb-3">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="chown_recursive" value="1" id="chown_recursive">
+                                        <input class="form-check-input" type="checkbox" name="chown_recursive" value="1" id="chown_recursive" checked>
                                         <label class="form-check-label" for="chown_recursive">
                                             Recursive (-R) - Terapkan ke semua subfolder/file
                                         </label>

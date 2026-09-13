@@ -35,26 +35,52 @@ class AdminSubdomainController extends Controller implements HasMiddleware
         $perPage = (int) $request->input('perPage', 10);
         $validPerPage = in_array($perPage, [10, 50, 100]) ? $perPage : 10;
 
+        $webserverType = $request->input('webserver_type');
+        $targetType = $request->input('target_type');
+        $publishStatus = $request->input('publish_status');
+        $status = $request->input('status');
+        $domainId = $request->input('domain_id');
+
         $domains = Domain::all();
         $servers = Server::where('status', true)->get();
 
+        $query = Subdomain::withTrashed()->with(['domain', 'server']);
+
         if ($search) {
-            $subdomains = Subdomain::withTrashed()
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('ip', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%")
-                ->orWhereHas('domain', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
-                })
-                ->with(['domain', 'server'])
-                ->paginate($validPerPage);
-        } else {
-            $subdomains = Subdomain::withTrashed()->with(['domain', 'server'])->paginate($validPerPage);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('ip', 'like', "%{$search}%")
+                  ->orWhereHas('domain', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
         }
+
+        if ($webserverType) {
+            $query->where('webserver_type', $webserverType);
+        }
+
+        if ($targetType) {
+            $query->where('target_type', $targetType);
+        }
+
+        if ($publishStatus) {
+            $query->where('publish_status', $publishStatus);
+        }
+
+        if ($status !== null && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        if ($domainId) {
+            $query->where('domain_id', $domainId);
+        }
+
+        $subdomains = $query->paginate($validPerPage);
 
         $permission = $this->permissionName;
 
-        return view('admin.subdomain.index', compact('subdomains', 'search', 'perPage', 'permission', 'domains', 'servers'));
+        return view('admin.subdomain.index', compact('subdomains', 'search', 'perPage', 'permission', 'domains', 'servers', 'webserverType', 'targetType', 'publishStatus', 'status', 'domainId'));
     }
 
     public function store(SubdomainRequest $request)

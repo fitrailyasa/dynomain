@@ -7,10 +7,7 @@ use App\Http\Controllers\Admin\AdminSubdomainController;
 use App\Http\Controllers\Admin\AdminServerController;
 use App\Http\Controllers\Admin\AdminGithubSshController;
 use App\Http\Controllers\Admin\AdminServerTaskController;
-use App\Models\Domain;
-use App\Models\Subdomain;
-use App\Models\Server;
-use App\Models\User;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,24 +15,13 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/dashboard', function () {
-    $totalDomains = Domain::count();
-    $totalSubdomains = Subdomain::count();
-    $totalServers = Server::count();
-    $totalUsers = User::count();
-    return view('dashboard', compact('totalDomains', 'totalSubdomains', 'totalServers', 'totalUsers'));
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
 
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', function () {
-            $totalDomains = Domain::count();
-            $totalSubdomains = Subdomain::count();
-            $totalServers = Server::count();
-            $totalUsers = User::count();
-            return view('dashboard', compact('totalDomains', 'totalSubdomains', 'totalServers', 'totalUsers'));
-        })->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         // Bulk delete routes (before resource routes)
         Route::delete('user/bulk-delete', [AdminUserController::class, 'bulkDelete'])->name('user.bulk-delete');

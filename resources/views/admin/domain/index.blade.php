@@ -14,6 +14,47 @@
 
     <!-- Search & Pagination -->
     <x-slot name="search">
+        <div class="row mb-2">
+            <div class="col-md-12">
+                <form method="GET" action="{{ route('admin.domain.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
+                    <input type="text" name="search" class="form-control form-control-sm" style="max-width: 200px;" placeholder="Search..." value="{{ $search }}">
+
+                    <select name="webserver_type" class="form-select form-select-sm" style="max-width: 150px;" onchange="this.form.submit()">
+                        <option value="">Semua Webserver</option>
+                        <option value="nginx" {{ ($webserverType ?? '') === 'nginx' ? 'selected' : '' }}>Nginx</option>
+                        <option value="apache" {{ ($webserverType ?? '') === 'apache' ? 'selected' : '' }}>Apache</option>
+                    </select>
+
+                    <select name="target_type" class="form-select form-select-sm" style="max-width: 150px;" onchange="this.form.submit()">
+                        <option value="">Semua Target</option>
+                        <option value="proxy" {{ ($targetType ?? '') === 'proxy' ? 'selected' : '' }}>Proxy</option>
+                        <option value="webroot" {{ ($targetType ?? '') === 'webroot' ? 'selected' : '' }}>Webroot</option>
+                        <option value="laravel" {{ ($targetType ?? '') === 'laravel' ? 'selected' : '' }}>Laravel</option>
+                        <option value="wordpress" {{ ($targetType ?? '') === 'wordpress' ? 'selected' : '' }}>WordPress</option>
+                        <option value="redirect" {{ ($targetType ?? '') === 'redirect' ? 'selected' : '' }}>Redirect</option>
+                    </select>
+
+                    <select name="publish_status" class="form-select form-select-sm" style="max-width: 150px;" onchange="this.form.submit()">
+                        <option value="">Semua Publish</option>
+                        <option value="published" {{ ($publishStatus ?? '') === 'published' ? 'selected' : '' }}>Published</option>
+                        <option value="pending" {{ ($publishStatus ?? '') === 'pending' ? 'selected' : '' }}>Unpublished</option>
+                    </select>
+
+                    <select name="status" class="form-select form-select-sm" style="max-width: 150px;" onchange="this.form.submit()">
+                        <option value="">Semua Status</option>
+                        <option value="1" {{ ($status ?? '') === '1' ? 'selected' : '' }}>Aktif</option>
+                        <option value="0" {{ ($status ?? '') === '0' ? 'selected' : '' }}>Tidak Aktif</option>
+                    </select>
+
+                    <input type="hidden" name="perPage" value="{{ $perPage }}">
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                    @if($search || $webserverType || $targetType || $publishStatus || ($status !== null && $status !== ''))
+                        <a href="{{ route('admin.domain.index') }}" class="btn btn-sm btn-secondary"><i class="fas fa-times"></i> Reset</a>
+                    @endif
+                </form>
+            </div>
+        </div>
+
         @include('components.search')
         @can('delete:domain')
             <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" style="display:none" onclick="bulkDeleteConfirm('domain')">
@@ -169,7 +210,7 @@
             @endforeach
         </tbody>
     </table>
-    {{ $domains->appends(['perPage' => $perPage, 'search' => $search])->links('vendor.pagination.mobile') }}
+    {{ $domains->appends(['perPage' => $perPage, 'search' => $search, 'webserver_type' => $webserverType, 'target_type' => $targetType, 'publish_status' => $publishStatus, 'status' => $status])->links('vendor.pagination.mobile') }}
 
     <!-- Shared Preview Config Modal -->
     <div class="modal fade" id="previewConfigModal" tabindex="-1" aria-hidden="true">

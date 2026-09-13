@@ -34,22 +34,43 @@ class AdminDomainController extends Controller implements HasMiddleware
         $perPage = (int) $request->input('perPage', 10);
         $validPerPage = in_array($perPage, [10, 50, 100]) ? $perPage : 10;
 
+        $webserverType = $request->input('webserver_type');
+        $targetType = $request->input('target_type');
+        $publishStatus = $request->input('publish_status');
+        $status = $request->input('status');
+
         $servers = Server::where('status', true)->get();
 
+        $query = Domain::withTrashed()->with('server');
+
         if ($search) {
-            $domains = Domain::withTrashed()
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('ip', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%")
-                ->with('server')
-                ->paginate($validPerPage);
-        } else {
-            $domains = Domain::withTrashed()->with('server')->paginate($validPerPage);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('ip', 'like', "%{$search}%");
+            });
         }
+
+        if ($webserverType) {
+            $query->where('webserver_type', $webserverType);
+        }
+
+        if ($targetType) {
+            $query->where('target_type', $targetType);
+        }
+
+        if ($publishStatus) {
+            $query->where('publish_status', $publishStatus);
+        }
+
+        if ($status !== null && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        $domains = $query->paginate($validPerPage);
 
         $permission = $this->permissionName;
 
-        return view('admin.domain.index', compact('domains', 'search', 'perPage', 'permission', 'servers'));
+        return view('admin.domain.index', compact('domains', 'search', 'perPage', 'permission', 'servers', 'webserverType', 'targetType', 'publishStatus', 'status'));
     }
 
     public function store(DomainRequest $request)
