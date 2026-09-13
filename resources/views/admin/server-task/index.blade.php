@@ -262,19 +262,21 @@
         </div>
     </div>
 
-    <script>
-    document.getElementById('executeBtn')?.addEventListener('click', function() {
-        this.disabled = true;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
-        document.getElementById('taskForm').submit();
-    });
-
-    // Update task_type based on active tab
-    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(tab) {
-        tab.addEventListener('shown.bs.tab', function(e) {
-            var target = e.target.getAttribute('href').replace('#', '').replace('-tab', '');
-            document.getElementById('taskTypeInput').value = target;
+    <x-slot name="script">
+        <script>
+        document.getElementById('executeBtn')?.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+            document.getElementById('taskForm').submit();
         });
-    });
-    </script>
+
+        // Update task_type based on active tab
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(tab) {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                var target = e.target.getAttribute('href').replace('#', '').replace('-tab', '');
+                document.getElementById('taskTypeInput').value = target;
+            });
+        });
+        </script>
+    </x-slot>
 </x-admin-layout>
