@@ -13,7 +13,7 @@
 
                     <form method="POST" action="{{ route('admin.server-task.execute') }}" id="taskForm">
                         @csrf
-                        <input type="hidden" name="task_type" value="clone" id="taskTypeInput">
+                        <input type="hidden" name="task_type" value="custom" id="taskTypeInput">
 
                         <!-- Server Selection -->
                         <div class="mb-3">
@@ -35,7 +35,12 @@
                         <!-- Task Type Tabs -->
                         <ul class="nav nav-tabs" role="tablist">
                             <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#clone-tab" role="tab">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#custom-tab" role="tab">
+                                    <i class="fas fa-code"></i> Custom Command
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#clone-tab" role="tab">
                                     <i class="fab fa-github"></i> Clone Repo
                                 </a>
                             </li>
@@ -54,16 +59,26 @@
                                     <i class="fas fa-user-shield"></i> Chown
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#custom-tab" role="tab">
-                                    <i class="fas fa-code"></i> Custom Command
-                                </a>
-                            </li>
                         </ul>
 
                         <div class="tab-content mt-3">
+                            <!-- Custom Tab -->
+                            <div class="tab-pane fade show active" id="custom-tab" role="tabpanel">
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('Custom Command') }}<span class="text-danger">*</span></label>
+                                    <textarea class="form-control font-monospace" name="command" rows="4" placeholder="sudo systemctl restart nginx" required></textarea>
+                                    <small class="text-muted">Masukkan command yang ingin dijalankan</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('Working Directory') }}</label>
+                                    <input type="text" class="form-control" name="working_dir" value="/var/www" placeholder="/var/www">
+                                </div>
+                            </div>
+
                             <!-- Clone Tab -->
-                            <div class="tab-pane fade show active" id="clone-tab" role="tabpanel">
+                            <div class="tab-pane fade" id="clone-tab" role="tabpanel">
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('GitHub SSH (PAT)') }}</label>
@@ -177,21 +192,6 @@
                                             Recursive (-R) - Terapkan ke semua subfolder/file
                                         </label>
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Custom Tab -->
-                            <div class="tab-pane fade" id="custom-tab" role="tabpanel">
-
-                                <div class="mb-3">
-                                    <label class="form-label">{{ __('Custom Command') }}<span class="text-danger">*</span></label>
-                                    <textarea class="form-control font-monospace" name="command" rows="4" placeholder="sudo systemctl restart nginx" required></textarea>
-                                    <small class="text-muted">Masukkan command yang ingin dijalankan</small>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">{{ __('Working Directory') }}</label>
-                                    <input type="text" class="form-control" name="working_dir" value="/var/www" placeholder="/var/www">
                                 </div>
                             </div>
                         </div>
