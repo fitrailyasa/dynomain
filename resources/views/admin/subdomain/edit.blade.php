@@ -74,6 +74,11 @@
                                 <option value="webroot" {{ $item->target_type === 'webroot' ? 'selected' : '' }}>Web Root / Directory (e.g. /var/www/html)</option>
                                 <option value="laravel" {{ $item->target_type === 'laravel' ? 'selected' : '' }}>Laravel Project (e.g. /var/www/app/public)</option>
                                 <option value="wordpress" {{ $item->target_type === 'wordpress' ? 'selected' : '' }}>WordPress Project (e.g. /var/www/wordpress)</option>
+                                <option value="codeigniter" {{ $item->target_type === 'codeigniter' ? 'selected' : '' }}>CodeIgniter Project (e.g. /var/www/html)</option>
+                                <option value="react" {{ $item->target_type === 'react' ? 'selected' : '' }}>React SPA (e.g. /var/www/html/dist)</option>
+                                <option value="vue" {{ $item->target_type === 'vue' ? 'selected' : '' }}>Vue SPA (e.g. /var/www/html/dist)</option>
+                                <option value="next" {{ $item->target_type === 'next' ? 'selected' : '' }}>Next.js SSR (Proxy to port 3000)</option>
+                                <option value="nuxt" {{ $item->target_type === 'nuxt' ? 'selected' : '' }}>Nuxt.js SSR (Proxy to port 3000)</option>
                                 <option value="redirect" {{ $item->target_type === 'redirect' ? 'selected' : '' }}>Redirect ke Domain Lain</option>
                             </select>
                         </div>

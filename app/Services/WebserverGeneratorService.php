@@ -59,6 +59,18 @@ class WebserverGeneratorService
             $targetDest = $item->target_destination ?? '/var/www/html';
         }
 
+        if ($targetType === 'codeigniter') {
+            $targetDest = $item->target_destination ?? '/var/www/html';
+        }
+
+        if (in_array($targetType, ['react', 'vue'])) {
+            $targetDest = $item->target_destination ?? '/var/www/html/dist';
+        }
+
+        if (in_array($targetType, ['next', 'nuxt'])) {
+            $targetDest = $item->target_destination ?? 'http://127.0.0.1:3000';
+        }
+
         $redirectUrl = $item->redirect_url ?? '';
 
         $sslType = $item->ssl_type ?? 'cloudflare';
@@ -120,7 +132,6 @@ class WebserverGeneratorService
         }
 
         if ($targetType === 'laravel') {
-            // Laravel-specific Nginx config
             $output .= "    root {$targetDest};\n";
             $output .= "    index index.php index.html index.htm;\n\n";
             $output .= "    charset utf-8;\n";
@@ -145,7 +156,6 @@ class WebserverGeneratorService
             $output .= "        add_header Cache-Control \"public, immutable\";\n";
             $output .= "    }\n";
         } elseif ($targetType === 'wordpress') {
-            // WordPress-specific Nginx config
             $output .= "    root {$targetDest};\n";
             $output .= "    index index.php index.html index.htm;\n\n";
             $output .= "    charset utf-8;\n";
@@ -171,8 +181,73 @@ class WebserverGeneratorService
             $output .= "    }\n\n";
             $output .= "    # Uploads size limit\n";
             $output .= "    client_max_body_size 64M;\n";
+        } elseif ($targetType === 'codeigniter') {
+            $output .= "    root {$targetDest};\n";
+            $output .= "    index index.php index.html index.htm;\n\n";
+            $output .= "    charset utf-8;\n";
+            $output .= "    error_page 404 /index.php;\n\n";
+            $output .= "    # CodeIgniter Routing\n";
+            $output .= "    location / {\n";
+            $output .= "        try_files \$uri \$uri/ /index.php?\$query_string;\n";
+            $output .= "    }\n\n";
+            $output .= "    # PHP-FPM Configuration\n";
+            $output .= "    location ~ \\.php$ {\n";
+            $output .= "        fastcgi_pass unix:/run/php/php8.3-fpm.sock;\n";
+            $output .= "        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;\n";
+            $output .= "        include fastcgi_params;\n";
+            $output .= "    }\n\n";
+            $output .= "    # Deny .htaccess and other hidden files\n";
+            $output .= "    location ~ /\\.ht {\n";
+            $output .= "        deny all;\n";
+            $output .= "    }\n\n";
+            $output .= "    # Static files cache\n";
+            $output .= "    location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n";
+            $output .= "        expires 30d;\n";
+            $output .= "        add_header Cache-Control \"public, immutable\";\n";
+            $output .= "    }\n";
+        } elseif (in_array($targetType, ['react', 'vue'])) {
+            $output .= "    root {$targetDest};\n";
+            $output .= "    index index.html index.htm;\n\n";
+            $output .= "    charset utf-8;\n\n";
+            $output .= "    # SPA Client-Side Routing\n";
+            $output .= "    location / {\n";
+            $output .= "        try_files \$uri \$uri/ /index.html;\n";
+            $output .= "    }\n\n";
+            $output .= "    # Static files cache\n";
+            $output .= "    location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map)$ {\n";
+            $output .= "        expires 30d;\n";
+            $output .= "        add_header Cache-Control \"public, immutable\";\n";
+            $output .= "    }\n\n";
+            $output .= "    # Gzip compression\n";
+            $output .= "    gzip on;\n";
+            $output .= "    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;\n";
+            $output .= "    gzip_vary on;\n";
+        } elseif (in_array($targetType, ['next', 'nuxt'])) {
+            $output .= "    # Proxy to Node.js SSR Server\n";
+            $output .= "    location / {\n";
+            $output .= "        proxy_pass http://127.0.0.1:3000;\n";
+            $output .= "        proxy_set_header Host \$host;\n";
+            $output .= "        proxy_set_header X-Real-IP \$remote_addr;\n";
+            $output .= "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n";
+            $output .= "        proxy_set_header X-Forwarded-Proto \$scheme;\n";
+            $output .= "        proxy_http_version 1.1;\n";
+            $output .= "        proxy_set_header Upgrade \$http_upgrade;\n";
+            $output .= "        proxy_set_header Connection \"upgrade\";\n";
+            $output .= "        proxy_read_timeout 60s;\n";
+            $output .= "        proxy_send_timeout 60s;\n";
+            $output .= "    }\n\n";
+            $output .= "    # Static assets from Next.js/Nuxt.js\n";
+            $output .= "    location /_next/static/ {\n";
+            $output .= "        proxy_pass http://127.0.0.1:3000;\n";
+            $output .= "        proxy_cache_valid 200 365d;\n";
+            $output .= "        add_header Cache-Control \"public, max-age=31536000, immutable\";\n";
+            $output .= "    }\n\n";
+            $output .= "    location /_nuxt/ {\n";
+            $output .= "        proxy_pass http://127.0.0.1:3000;\n";
+            $output .= "        proxy_cache_valid 200 365d;\n";
+            $output .= "        add_header Cache-Control \"public, max-age=31536000, immutable\";\n";
+            $output .= "    }\n";
         } elseif ($targetType === 'redirect') {
-            // Redirect config
             $output .= "    # Redirect to {$redirectUrl}\n";
             $output .= "    location / {\n";
             $output .= "        return 301 {$redirectUrl}\$request_uri;\n";
@@ -247,6 +322,18 @@ class WebserverGeneratorService
             $targetDest = $item->target_destination ?? '/var/www/html';
         }
 
+        if ($targetType === 'codeigniter') {
+            $targetDest = $item->target_destination ?? '/var/www/html';
+        }
+
+        if (in_array($targetType, ['react', 'vue'])) {
+            $targetDest = $item->target_destination ?? '/var/www/html/dist';
+        }
+
+        if (in_array($targetType, ['next', 'nuxt'])) {
+            $targetDest = $item->target_destination ?? 'http://127.0.0.1:3000';
+        }
+
         $customConfig = trim($item->custom_nginx_config ?? '');
         $customConfigMode = $item->custom_config_mode ?? 'default';
 
@@ -275,7 +362,6 @@ class WebserverGeneratorService
         $output .= "    RemoteIPTrustedProxy " . implode(' ', $cloudflareIps) . "\n\n";
 
         if ($targetType === 'laravel') {
-            // Laravel-specific Apache config
             $output .= "    DocumentRoot {$targetDest}\n";
             $output .= "    <Directory {$targetDest}>\n";
             $output .= "        Options -Indexes +FollowSymLinks +MultiViews\n";
@@ -301,7 +387,6 @@ class WebserverGeneratorService
             $output .= "        php_value max_input_time 300\n";
             $output .= "    </IfModule>\n";
         } elseif ($targetType === 'wordpress') {
-            // WordPress-specific Apache config
             $output .= "    DocumentRoot {$targetDest}\n";
             $output .= "    <Directory {$targetDest}>\n";
             $output .= "        Options -Indexes +FollowSymLinks +MultiViews\n";
@@ -324,6 +409,63 @@ class WebserverGeneratorService
             $output .= "        php_value max_execution_time 300\n";
             $output .= "        php_value max_input_time 300\n";
             $output .= "    </IfModule>\n";
+        } elseif ($targetType === 'codeigniter') {
+            $output .= "    DocumentRoot {$targetDest}\n";
+            $output .= "    <Directory {$targetDest}>\n";
+            $output .= "        Options -Indexes +FollowSymLinks +MultiViews\n";
+            $output .= "        AllowOverride All\n";
+            $output .= "        Require all granted\n";
+            $output .= "    </Directory>\n\n";
+            $output .= "    # CodeIgniter Routing\n";
+            $output .= "    <IfModule mod_rewrite.c>\n";
+            $output .= "        RewriteEngine On\n";
+            $output .= "        RewriteCond %{REQUEST_FILENAME} !-d\n";
+            $output .= "        RewriteCond %{REQUEST_FILENAME} !-f\n";
+            $output .= "        RewriteRule ^(.*)$ index.php?/$1 [L,QSA]\n";
+            $output .= "    </IfModule>\n\n";
+            $output .= "    # PHP configuration\n";
+            $output .= "    <IfModule mod_php.c>\n";
+            $output .= "        php_value upload_max_filesize 64M\n";
+            $output .= "        php_value post_max_size 64M\n";
+            $output .= "        php_value max_execution_time 300\n";
+            $output .= "        php_value max_input_time 300\n";
+            $output .= "    </IfModule>\n";
+        } elseif (in_array($targetType, ['react', 'vue'])) {
+            $output .= "    DocumentRoot {$targetDest}\n";
+            $output .= "    <Directory {$targetDest}>\n";
+            $output .= "        Options -Indexes +FollowSymLinks +MultiViews\n";
+            $output .= "        AllowOverride None\n";
+            $output .= "        Require all granted\n";
+            $output .= "    </Directory>\n\n";
+            $output .= "    # SPA Client-Side Routing\n";
+            $output .= "    <IfModule mod_rewrite.c>\n";
+            $output .= "        RewriteEngine On\n";
+            $output .= "        RewriteCond %{REQUEST_FILENAME} !-f\n";
+            $output .= "        RewriteCond %{REQUEST_FILENAME} !-d\n";
+            $output .= "        RewriteRule . /index.html [L]\n";
+            $output .= "    </IfModule>\n\n";
+            $output .= "    # Gzip compression\n";
+            $output .= "    <IfModule mod_deflate.c>\n";
+            $output .= "        AddOutputFilterByType DEFLATE text/plain text/css application/json application/javascript text/xml application/xml text/javascript\n";
+            $output .= "    </IfModule>\n\n";
+            $output .= "    # Static files cache\n";
+            $output .= "    <IfModule mod_expires.c>\n";
+            $output .= "        ExpiresActive On\n";
+            $output .= "        ExpiresByType application/javascript \"access plus 30 days\"\n";
+            $output .= "        ExpiresByType text/css \"access plus 30 days\"\n";
+            $output .= "        ExpiresByType image/* \"access plus 30 days\"\n";
+            $output .= "    </IfModule>\n";
+        } elseif (in_array($targetType, ['next', 'nuxt'])) {
+            $output .= "    # Proxy to Node.js SSR Server\n";
+            $output .= "    ProxyPreserveHost On\n";
+            $output .= "    ProxyPass / http://127.0.0.1:3000/\n";
+            $output .= "    ProxyPassReverse / http://127.0.0.1:3000/\n\n";
+            $output .= "    # WebSocket support\n";
+            $output .= "    RewriteEngine On\n";
+            $output .= "    RewriteCond %{HTTP:Upgrade} =websocket [NC]\n";
+            $output .= "    RewriteRule /(.*) ws://127.0.0.1:3000/$1 [P,L]\n";
+            $output .= "    RewriteCond %{HTTP:Upgrade} !=websocket [NC]\n";
+            $output .= "    RewriteRule /(.*) http://127.0.0.1:3000/$1 [P,L]\n";
         } elseif ($targetType === 'redirect') {
             // Redirect config
             $output .= "    # Redirect to {$redirectUrl}\n";

@@ -27,7 +27,7 @@ class DomainRequest extends FormRequest
             'status' => 'required|in:0,1',
             'is_wildcard' => 'nullable|boolean',
             'webserver_type' => 'required|in:nginx,apache',
-            'target_type' => 'required|in:proxy,webroot,laravel,wordpress,redirect',
+            'target_type' => 'required|in:proxy,webroot,laravel,wordpress,redirect,codeigniter,react,next,vue,nuxt',
             'target_destination' => 'nullable|string|max:255',
             'redirect_url' => 'nullable|string|max:255',
             'server_id' => 'required|exists:servers,id',

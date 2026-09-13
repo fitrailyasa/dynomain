@@ -76,6 +76,11 @@
                                 <option value="webroot">Web Root / Directory (e.g. /var/www/html)</option>
                                 <option value="laravel">Laravel Project (e.g. /var/www/app/public)</option>
                                 <option value="wordpress">WordPress Project (e.g. /var/www/wordpress)</option>
+                                <option value="codeigniter">CodeIgniter Project (e.g. /var/www/html)</option>
+                                <option value="react">React SPA (e.g. /var/www/html/dist)</option>
+                                <option value="vue">Vue SPA (e.g. /var/www/html/dist)</option>
+                                <option value="next">Next.js SSR (Proxy to port 3000)</option>
+                                <option value="nuxt">Nuxt.js SSR (Proxy to port 3000)</option>
                                 <option value="redirect">Redirect ke Domain Lain</option>
                             </select>
                         </div>

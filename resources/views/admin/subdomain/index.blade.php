@@ -38,6 +38,11 @@
                         <option value="webroot" {{ ($targetType ?? '') === 'webroot' ? 'selected' : '' }}>Webroot</option>
                         <option value="laravel" {{ ($targetType ?? '') === 'laravel' ? 'selected' : '' }}>Laravel</option>
                         <option value="wordpress" {{ ($targetType ?? '') === 'wordpress' ? 'selected' : '' }}>WordPress</option>
+                        <option value="codeigniter" {{ ($targetType ?? '') === 'codeigniter' ? 'selected' : '' }}>CodeIgniter</option>
+                        <option value="react" {{ ($targetType ?? '') === 'react' ? 'selected' : '' }}>React</option>
+                        <option value="vue" {{ ($targetType ?? '') === 'vue' ? 'selected' : '' }}>Vue</option>
+                        <option value="next" {{ ($targetType ?? '') === 'next' ? 'selected' : '' }}>Next.js</option>
+                        <option value="nuxt" {{ ($targetType ?? '') === 'nuxt' ? 'selected' : '' }}>Nuxt.js</option>
                         <option value="redirect" {{ ($targetType ?? '') === 'redirect' ? 'selected' : '' }}>Redirect</option>
                     </select>
 
