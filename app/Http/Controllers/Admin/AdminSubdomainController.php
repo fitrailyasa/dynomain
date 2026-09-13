@@ -72,10 +72,17 @@ class AdminSubdomainController extends Controller implements HasMiddleware
     public function update(SubdomainRequest $request, string $id, WebserverPublisherService $publisher)
     {
         $subdomain = Subdomain::findOrFail($id);
+
+        // Get old filename before update
+        $oldFilename = $publisher->getGenerator()->getFilename($subdomain);
+
         $subdomain->update($request->validated());
 
-        // Auto-publish config ke server setelah update
+        // Cleanup old config files if filename changed
         $server = $subdomain->server;
+        $publisher->cleanupOldConfig($subdomain, $oldFilename, $server);
+
+        // Auto-publish config ke server setelah update
         $result = $publisher->publish($subdomain, $server);
 
         if ($result['success']) {

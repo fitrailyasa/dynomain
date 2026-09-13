@@ -19,6 +19,11 @@ class WebserverPublisherService
         $this->generator = $generator;
     }
 
+    public function getGenerator(): WebserverGeneratorService
+    {
+        return $this->generator;
+    }
+
     /**
      * Publish webserver configuration for Domain or Subdomain.
      */
@@ -466,6 +471,95 @@ class WebserverPublisherService
             Process::run($reloadCmd);
 
             return ['success' => true, 'message' => 'Config deleted successfully!', 'log' => implode("\n", $log)];
+        }
+    }
+
+    /**
+     * Cleanup old config files when domain/subdomain name changes (rename logic).
+     * Removes old config + symlink if filename differs from current.
+     */
+    public function cleanupOldConfig(Domain|Subdomain $item, string $oldFilename, ?Server $server = null): array
+    {
+        $newFilename = $this->generator->getFilename($item);
+
+        // If filename hasn't changed, nothing to cleanup
+        if ($oldFilename === $newFilename) {
+            return ['success' => true, 'message' => 'Filename unchanged, no cleanup needed.', 'log' => ''];
+        }
+
+        $targetServer = $server ?? $item->server;
+
+        if (!$targetServer) {
+            $targetServer = Server::where('type', 'local')->first();
+        }
+
+        if (!$targetServer) {
+            return ['success' => true, 'message' => 'No server configured, skipped.', 'log' => ''];
+        }
+
+        $log = [];
+        $log[] = "[Cleanup] Filename changed: {$oldFilename} -> {$newFilename}";
+
+        if ($targetServer->type === 'ssh') {
+            try {
+                $ssh = $this->createSshConnection($targetServer);
+                $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
+                $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+
+                $oldConfig = "{$configPath}/{$oldFilename}";
+                $oldSymlink = $symlinkPath ? "{$symlinkPath}/{$oldFilename}" : '';
+
+                if (!empty($oldSymlink)) {
+                    $ssh->exec("sudo rm -f " . escapeshellarg($oldSymlink));
+                    $log[] = "[Cleanup] Removed old symlink: {$oldSymlink}";
+                }
+
+                $ssh->exec("sudo rm -f " . escapeshellarg($oldConfig));
+                $log[] = "[Cleanup] Removed old config: {$oldConfig}";
+
+                $oldStorage = storage_path('app/webservers/' . $oldFilename);
+                if (file_exists($oldStorage)) {
+                    @unlink($oldStorage);
+                    $log[] = "[Cleanup] Removed old storage copy.";
+                }
+
+                return ['success' => true, 'message' => 'Old config cleaned up.', 'log' => implode("\n", $log)];
+            } catch (\Throwable $e) {
+                $log[] = "[Cleanup Error] " . $e->getMessage();
+                return ['success' => false, 'message' => 'Cleanup failed: ' . $e->getMessage(), 'log' => implode("\n", $log)];
+            }
+        } else {
+            $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
+            $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+
+            $oldConfig = $configPath . '/' . $oldFilename;
+            $oldSymlink = $symlinkPath ? $symlinkPath . '/' . $oldFilename : '';
+
+            try {
+                if (!empty($oldSymlink) && (is_link($oldSymlink) || file_exists($oldSymlink))) {
+                    @unlink($oldSymlink);
+                    $log[] = "[Cleanup] Removed old symlink: {$oldSymlink}";
+                }
+            } catch (\Throwable $e) {
+                Process::run("sudo rm -f " . escapeshellarg($oldSymlink));
+            }
+
+            try {
+                if (file_exists($oldConfig)) {
+                    @unlink($oldConfig);
+                    $log[] = "[Cleanup] Removed old config: {$oldConfig}";
+                }
+            } catch (\Throwable $e) {
+                Process::run("sudo rm -f " . escapeshellarg($oldConfig));
+            }
+
+            $oldStorage = storage_path('app/webservers/' . $oldFilename);
+            if (file_exists($oldStorage)) {
+                @unlink($oldStorage);
+                $log[] = "[Cleanup] Removed old storage copy.";
+            }
+
+            return ['success' => true, 'message' => 'Old config cleaned up.', 'log' => implode("\n", $log)];
         }
     }
 }
