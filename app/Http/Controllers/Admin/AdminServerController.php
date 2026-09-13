@@ -9,6 +9,7 @@ use App\Http\Requests\ServerRequest;
 use App\Services\WebserverPublisherService;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Support\Facades\Process;
 
 class AdminServerController extends Controller implements HasMiddleware
 {
@@ -20,7 +21,7 @@ class AdminServerController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:view:server', only: ['index']),
             new Middleware('permission:create:server', only: ['store']),
-            new Middleware('permission:edit:server', only: ['update', 'toggleStatus', 'testConnection']),
+            new Middleware('permission:edit:server', only: ['update', 'toggleStatus', 'testConnection', 'reloadNginx', 'restartNginx']),
             new Middleware('permission:delete:server', only: ['destroy']),
         ];
     }
@@ -103,6 +104,132 @@ class AdminServerController extends Controller implements HasMiddleware
         }
 
         return back()->with('error', $res['message'] . "\n" . $res['log']);
+    }
+
+    public function reloadNginx(string $id)
+    {
+        $server = Server::findOrFail($id);
+        $log = [];
+
+        try {
+            if ($server->type === 'ssh') {
+                $log[] = "[SSH Reload] Connecting to {$server->username}@{$server->host}:{$server->port}";
+                $ssh = $this->createSshConnection($server);
+                if (!$ssh) {
+                    throw new \Exception("Could not establish SSH connection.");
+                }
+                $log[] = "[SSH Reload] Connected successfully.";
+
+                $testCmd = 'sudo nginx -t';
+                $log[] = "[SSH Reload] Running: {$testCmd}";
+                $testResult = $ssh->exec($testCmd);
+                $log[] = "[SSH Reload] Test output: " . trim($testResult);
+
+                $reloadCmd = $server->reload_command ?: 'sudo systemctl reload nginx';
+                $log[] = "[SSH Reload] Running: {$reloadCmd}";
+                $reloadResult = $ssh->exec($reloadCmd);
+                $log[] = "[SSH Reload] Reload output: " . trim($reloadResult);
+
+                return back()->with('success', "Nginx reloaded on {$server->name}!\n\nLog:\n" . implode("\n", $log));
+            } else {
+                $log[] = "[Local Reload] Running: sudo nginx -t";
+                $testProc = Process::run('sudo nginx -t');
+                $log[] = "[Local Reload] Test output: " . trim($testProc->output() . ' ' . $testProc->errorOutput());
+
+                $reloadCmd = $server->reload_command ?: 'sudo systemctl reload nginx';
+                $log[] = "[Local Reload] Running: {$reloadCmd}";
+                $reloadProc = Process::run($reloadCmd);
+                $log[] = "[Local Reload] Reload output: " . trim($reloadProc->output() . ' ' . $reloadProc->errorOutput());
+
+                if ($reloadProc->successful()) {
+                    return back()->with('success', "Nginx reloaded successfully!\n\nLog:\n" . implode("\n", $log));
+                } else {
+                    return back()->with('error', "Nginx reload failed!\n\nLog:\n" . implode("\n", $log));
+                }
+            }
+        } catch (\Throwable $e) {
+            $log[] = "[Error] " . $e->getMessage();
+            return back()->with('error', "Failed to reload nginx!\n\nLog:\n" . implode("\n", $log));
+        }
+    }
+
+    public function restartNginx(string $id)
+    {
+        $server = Server::findOrFail($id);
+        $log = [];
+
+        try {
+            if ($server->type === 'ssh') {
+                $log[] = "[SSH Restart] Connecting to {$server->username}@{$server->host}:{$server->port}";
+                $ssh = $this->createSshConnection($server);
+                if (!$ssh) {
+                    throw new \Exception("Could not establish SSH connection.");
+                }
+                $log[] = "[SSH Restart] Connected successfully.";
+
+                $testCmd = 'sudo nginx -t';
+                $log[] = "[SSH Restart] Running: {$testCmd}";
+                $testResult = $ssh->exec($testCmd);
+                $log[] = "[SSH Restart] Test output: " . trim($testResult);
+
+                $restartCmd = str_replace('reload', 'restart', $server->reload_command ?: 'sudo systemctl reload nginx');
+                $log[] = "[SSH Restart] Running: {$restartCmd}";
+                $restartResult = $ssh->exec($restartCmd);
+                $log[] = "[SSH Restart] Restart output: " . trim($restartResult);
+
+                return back()->with('success', "Nginx restarted on {$server->name}!\n\nLog:\n" . implode("\n", $log));
+            } else {
+                $log[] = "[Local Restart] Running: sudo nginx -t";
+                $testProc = Process::run('sudo nginx -t');
+                $log[] = "[Local Restart] Test output: " . trim($testProc->output() . ' ' . $testProc->errorOutput());
+
+                $restartCmd = str_replace('reload', 'restart', $server->reload_command ?: 'sudo systemctl reload nginx');
+                $log[] = "[Local Restart] Running: {$restartCmd}";
+                $restartProc = Process::run($restartCmd);
+                $log[] = "[Local Restart] Restart output: " . trim($restartProc->output() . ' ' . $restartProc->errorOutput());
+
+                if ($restartProc->successful()) {
+                    return back()->with('success', "Nginx restarted successfully!\n\nLog:\n" . implode("\n", $log));
+                } else {
+                    return back()->with('error', "Nginx restart failed!\n\nLog:\n" . implode("\n", $log));
+                }
+            }
+        } catch (\Throwable $e) {
+            $log[] = "[Error] " . $e->getMessage();
+            return back()->with('error', "Failed to restart nginx!\n\nLog:\n" . implode("\n", $log));
+        }
+    }
+
+    protected function createSshConnection(Server $server)
+    {
+        $host = $server->host;
+        $port = $server->port ?: 22;
+        $username = $server->username ?: 'root';
+
+        if (empty($host)) {
+            throw new \Exception("SSH Host IP/Hostname is required.");
+        }
+
+        $ssh = new \phpseclib3\Net\SSH2($host, $port);
+        $ssh->setTimeout(15);
+
+        if ($server->auth_type === 'key') {
+            $privateKey = $server->private_key;
+            if (empty($privateKey)) {
+                throw new \Exception("SSH Private Key is required for key authentication.");
+            }
+            $key = \phpseclib3\Crypt\PublicKeyLoader::load($privateKey, $server->password ?: false);
+            if (!$ssh->login($username, $key)) {
+                throw new \Exception("SSH key authentication failed for {$username}@{$host}");
+            }
+        } else {
+            $password = $server->password;
+            if (!$ssh->login($username, $password)) {
+                throw new \Exception("SSH password authentication failed for {$username}@{$host}");
+            }
+        }
+
+        return $ssh;
     }
 
     public function destroy(string $id)
