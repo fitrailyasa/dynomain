@@ -120,7 +120,7 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('File/Folder Path') }}<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="chmod_path" placeholder="/var/www/html" required>
+                                    <input type="text" class="form-control" name="chmod_path" value="/var/www" placeholder="/var/www/html" required>
                                 </div>
 
                                 <div class="mb-3">
@@ -155,18 +155,18 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('File/Folder Path') }}<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="chown_path" placeholder="/var/www/html" required>
+                                    <input type="text" class="form-control" name="chown_path" value="/var/www" placeholder="/var/www/html" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Owner (username)') }}<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="chown_owner" placeholder="www-data" required>
+                                    <input type="text" class="form-control" name="chown_owner" value="www-data" placeholder="www-data" required>
                                     <small class="text-muted">User yang memiliki file/folder</small>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Group (optional)') }}</label>
-                                    <input type="text" class="form-control" name="chown_group" placeholder="www-data">
+                                    <input type="text" class="form-control" name="chown_group" value="www-data" placeholder="www-data">
                                     <small class="text-muted">Kosongkan jika hanya ganti owner</small>
                                 </div>
 
