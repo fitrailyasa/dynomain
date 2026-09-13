@@ -45,6 +45,16 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#chmod-tab" role="tab">
+                                    <i class="fas fa-lock"></i> Chmod
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#chown-tab" role="tab">
+                                    <i class="fas fa-user-shield"></i> Chown
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" data-bs-toggle="tab" href="#custom-tab" role="tab">
                                     <i class="fas fa-code"></i> Custom Command
                                 </a>
@@ -105,6 +115,71 @@
                                 </div>
                             </div>
 
+                            <!-- Chmod Tab -->
+                            <div class="tab-pane fade" id="chmod-tab" role="tabpanel">
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('File/Folder Path') }}<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="chmod_path" placeholder="/var/www/html" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('Permissions (octal)') }}<span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="chmod_permissions" required>
+                                            <option value="755">755 (rwxr-xr-x) - Folder default</option>
+                                            <option value="644">644 (rw-r--r--) - File default</option>
+                                            <option value="777">777 (rwxrwxrwx) - Full access</option>
+                                            <option value="666">666 (rw-rw-rw-) - Read/write all</option>
+                                            <option value="700">700 (rwx------) - Owner only</option>
+                                            <option value="600">600 (rw-------) - Owner read/write</option>
+                                            <option value="444">444 (r--r--r--) - Read only</option>
+                                            <option value="400">400 (r--------) - Owner read only</option>
+                                        </select>
+                                    </div>
+                                    <small class="text-muted">755 untuk folder, 644 untuk file</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="chmod_recursive" value="1" id="chmod_recursive">
+                                        <label class="form-check-label" for="chmod_recursive">
+                                            Recursive (-R) - Terapkan ke semua subfolder/file
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chown Tab -->
+                            <div class="tab-pane fade" id="chown-tab" role="tabpanel">
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('File/Folder Path') }}<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="chown_path" placeholder="/var/www/html" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('Owner (username)') }}<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="chown_owner" placeholder="www-data" required>
+                                    <small class="text-muted">User yang memiliki file/folder</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('Group (optional)') }}</label>
+                                    <input type="text" class="form-control" name="chown_group" placeholder="www-data">
+                                    <small class="text-muted">Kosongkan jika hanya ganti owner</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="chown_recursive" value="1" id="chown_recursive">
+                                        <label class="form-check-label" for="chown_recursive">
+                                            Recursive (-R) - Terapkan ke semua subfolder/file
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Custom Tab -->
                             <div class="tab-pane fade" id="custom-tab" role="tabpanel">
 
@@ -153,6 +228,25 @@
                         <li><strong>NPM:</strong> <code>axios laravel-mix</code></li>
                         <li><strong>Composer:</strong> <code>laravel/framework</code></li>
                         <li><strong>PIP:</strong> <code>flask django</code></li>
+                    </ul>
+
+                    <hr>
+
+                    <h6><i class="fas fa-lock text-warning"></i> Chmod (Permissions)</h6>
+                    <ul class="small">
+                        <li><strong>755:</strong> Folder default (rwxr-xr-x)</li>
+                        <li><strong>644:</strong> File default (rw-r--r--)</li>
+                        <li><strong>777:</strong> Full access (hati-hati!)</li>
+                        <li><strong>600:</strong> Private (rw-------)</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6><i class="fas fa-user-shield text-info"></i> Chown (Ownership)</h6>
+                    <ul class="small">
+                        <li><strong>www-data:</strong> Web server (Nginx/Apache)</li>
+                        <li><strong>root:</strong> Super admin</li>
+                        <li>Contoh: <code>/var/www/html www-data www-data</code></li>
                     </ul>
 
                     <hr>
