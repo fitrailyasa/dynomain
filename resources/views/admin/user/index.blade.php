@@ -17,7 +17,7 @@
         @include('components.search')
         @can('delete:user')
             <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" style="display:none" onclick="bulkDeleteConfirm('user')">
-                <i class="fas fa-trash"></i> Delete (<span id="selectedCount">0</span>)
+                <i class="fas fa-trash"></i> (<span id="selectedCount">0</span>)
             </button>
         @endcan
         @can('edit:user')

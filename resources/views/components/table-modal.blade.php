@@ -1,8 +1,6 @@
 <!-- Button to open modal -->
 <button role="button" class="btn btn-sm m-1 {{ $buttonColor }}" data-bs-toggle="modal"
-    data-bs-target=".form{{ $modalType }}{{ $id }}"><i class="fas {{ $buttonIcon }}"></i><span
-        class="d-none d-sm-inline">
-        {{ $buttonText }}</span></button>
+    data-bs-target=".form{{ $modalType }}{{ $id }}"><i class="fas {{ $buttonIcon }}"></i></button>
 
 <!-- Modal -->
 <div class="modal fade form{{ $modalType }}{{ $id }}" tabindex="-1" role="dialog" aria-hidden="">
@@ -23,7 +21,7 @@
                     <x-button.close />
                     <button type="submit" class="btn {{ $buttonColor }} btn-submit">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        <span class="btn-text">{{ $buttonText }}</span>
+                        <i class="fas {{ $buttonIcon }}"></i>
                     </button>
                 </form>
             </div>

@@ -17,7 +17,7 @@
         @include('components.search')
         @can('delete:role')
             <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" style="display:none" onclick="bulkDeleteConfirm('role')">
-                <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+                <i class="fas fa-trash"></i> (<span id="selectedCount">0</span>)
             </button>
         @endcan
     </x-slot>
