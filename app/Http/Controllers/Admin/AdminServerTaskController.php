@@ -30,7 +30,7 @@ class AdminServerTaskController extends Controller implements HasMiddleware
     {
         $request->validate([
             'server_id' => 'required|exists:servers,id',
-            'task_type' => 'required|in:clone,install,custom',
+            'task_type' => 'required|in:clone,install,chmod,chown,custom',
         ]);
 
         $server = Server::findOrFail($request->server_id);
@@ -90,6 +90,38 @@ class AdminServerTaskController extends Controller implements HasMiddleware
                 $result = $ssh->exec($cmd);
                 $log[] = "[SSH] Output: " . trim($result);
 
+            } elseif ($taskType === 'chmod') {
+                $path = $request->input('chmod_path');
+                $permissions = $request->input('chmod_permissions');
+                $recursive = $request->input('chmod_recursive', '0');
+
+                if (empty($path) || empty($permissions)) {
+                    return back()->with('error', 'Path and permissions are required!');
+                }
+
+                $recursiveFlag = $recursive ? '-R ' : '';
+                $cmd = "sudo chmod {$recursiveFlag}{$permissions} {$path}";
+                $log[] = "[SSH] Running: {$cmd}";
+                $result = $ssh->exec($cmd);
+                $log[] = "[SSH] Output: " . trim($result);
+
+            } elseif ($taskType === 'chown') {
+                $path = $request->input('chown_path');
+                $owner = $request->input('chown_owner');
+                $group = $request->input('chown_group');
+                $recursive = $request->input('chown_recursive', '0');
+
+                if (empty($path) || empty($owner)) {
+                    return back()->with('error', 'Path and owner are required!');
+                }
+
+                $ownerStr = $group ? "{$owner}:{$group}" : $owner;
+                $recursiveFlag = $recursive ? '-R ' : '';
+                $cmd = "sudo chown {$recursiveFlag}{$ownerStr} {$path}";
+                $log[] = "[SSH] Running: {$cmd}";
+                $result = $ssh->exec($cmd);
+                $log[] = "[SSH] Output: " . trim($result);
+
             } elseif ($taskType === 'custom') {
                 $command = $request->input('command');
                 $workingDir = $request->input('working_dir', '/var/www');
@@ -105,11 +137,11 @@ class AdminServerTaskController extends Controller implements HasMiddleware
             }
 
             $log[] = "[SSH] Task completed successfully!";
-            return back()->with('success', implode("\n", $log));
+            return back()->with('success', implode('<br>', $log));
 
         } catch (\Throwable $e) {
             $log[] = "[Error] " . $e->getMessage();
-            return back()->with('error', implode("\n", $log));
+            return back()->with('error', implode('<br>', $log));
         }
     }
 
