@@ -16,7 +16,7 @@
     <x-slot name="search">
         @include('components.search')
         @can('delete:domain')
-            <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" disabled onclick="bulkDeleteConfirm('domain')">
+            <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" style="display:none" onclick="bulkDeleteConfirm('domain')">
                 <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
             </button>
         @endcan
@@ -222,8 +222,9 @@
 
         function updateBulkBtn(entity) {
             var checked = document.querySelectorAll('.' + entity + '-checkbox:checked').length;
+            var btn = document.getElementById('bulkDeleteBtn');
             document.getElementById('selectedCount').textContent = checked;
-            document.getElementById('bulkDeleteBtn').disabled = checked === 0;
+            btn.style.display = checked > 0 ? 'inline-block' : 'none';
         }
 
         function bulkDeleteConfirm(entity) {
