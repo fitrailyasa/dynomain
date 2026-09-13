@@ -29,7 +29,7 @@ class DomainRequest extends FormRequest
             'webserver_type' => 'required|in:nginx,apache',
             'target_type' => 'required|in:proxy,webroot,laravel,wordpress',
             'target_destination' => 'nullable|string|max:255',
-            'server_id' => 'nullable|exists:servers,id',
+            'server_id' => 'required|exists:servers,id',
             'ssl_type' => 'required|in:none,cloudflare,certbot,custom',
             'ssl_cert_path' => 'nullable|string|max:255',
             'ssl_key_path' => 'nullable|string|max:255',
