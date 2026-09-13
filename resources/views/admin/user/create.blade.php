@@ -3,7 +3,7 @@
         class="fas fa-plus"></i></button>
 
 <!-- Modal -->
-<div class="modal fade formCreate" tabindex="-1" role="dialog" aria-labelledby="modalFormLabel" aria-hidden="true">
+<div class="modal fade formCreateUser" tabindex="-1" role="dialog" aria-labelledby="modalFormLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form method="POST" action="{{ route('admin.user.store') }}" enctype="multipart/form-data">
