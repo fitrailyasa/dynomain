@@ -100,10 +100,10 @@ class AdminServerController extends Controller implements HasMiddleware
         $res = $publisher->testSshConnection($server);
 
         if ($res['success']) {
-            return back()->with('success', $res['message'] . "\n" . $res['log']);
+            return back()->with('success', $res['message'] . '<br>' . $res['log']);
         }
 
-        return back()->with('error', $res['message'] . "\n" . $res['log']);
+        return back()->with('error', $res['message'] . '<br>' . $res['log']);
     }
 
     public function reloadNginx(string $id)
@@ -130,7 +130,7 @@ class AdminServerController extends Controller implements HasMiddleware
                 $reloadResult = $ssh->exec($reloadCmd);
                 $log[] = "[SSH Reload] Reload output: " . trim($reloadResult);
 
-                return back()->with('success', "Nginx reloaded on {$server->name}!\n\nLog:\n" . implode("\n", $log));
+                return back()->with('success', "Nginx reloaded on {$server->name}!<br><br>Log:<br>" . implode('<br>', $log));
             } else {
                 $log[] = "[Local Reload] Running: sudo nginx -t";
                 $testProc = Process::run('sudo nginx -t');
@@ -142,14 +142,14 @@ class AdminServerController extends Controller implements HasMiddleware
                 $log[] = "[Local Reload] Reload output: " . trim($reloadProc->output() . ' ' . $reloadProc->errorOutput());
 
                 if ($reloadProc->successful()) {
-                    return back()->with('success', "Nginx reloaded successfully!\n\nLog:\n" . implode("\n", $log));
+                    return back()->with('success', "Nginx reloaded successfully!<br><br>Log:<br>" . implode('<br>', $log));
                 } else {
-                    return back()->with('error', "Nginx reload failed!\n\nLog:\n" . implode("\n", $log));
+                    return back()->with('error', "Nginx reload failed!<br><br>Log:<br>" . implode('<br>', $log));
                 }
             }
         } catch (\Throwable $e) {
             $log[] = "[Error] " . $e->getMessage();
-            return back()->with('error', "Failed to reload nginx!\n\nLog:\n" . implode("\n", $log));
+            return back()->with('error', "Failed to reload nginx!<br><br>Log:<br>" . implode('<br>', $log));
         }
     }
 
@@ -177,7 +177,7 @@ class AdminServerController extends Controller implements HasMiddleware
                 $restartResult = $ssh->exec($restartCmd);
                 $log[] = "[SSH Restart] Restart output: " . trim($restartResult);
 
-                return back()->with('success', "Nginx restarted on {$server->name}!\n\nLog:\n" . implode("\n", $log));
+                return back()->with('success', "Nginx restarted on {$server->name}!<br><br>Log:<br>" . implode('<br>', $log));
             } else {
                 $log[] = "[Local Restart] Running: sudo nginx -t";
                 $testProc = Process::run('sudo nginx -t');
@@ -190,11 +190,11 @@ class AdminServerController extends Controller implements HasMiddleware
                 $log[] = "[Local Restart] Background PID: " . trim($restartProc->output());
                 $log[] = "[Local Restart] Nginx will restart in ~2 seconds.";
 
-                return back()->with('success', "Nginx restart initiated! Server will restart in ~2 seconds.\n\nLog:\n" . implode("\n", $log));
+                return back()->with('success', "Nginx restart initiated! Server will restart in ~2 seconds.<br><br>Log:<br>" . implode('<br>', $log));
             }
         } catch (\Throwable $e) {
             $log[] = "[Error] " . $e->getMessage();
-            return back()->with('error', "Failed to restart nginx!\n\nLog:\n" . implode("\n", $log));
+            return back()->with('error', "Failed to restart nginx!<br><br>Log:<br>" . implode('<br>', $log));
         }
     }
 
