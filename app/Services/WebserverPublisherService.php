@@ -576,12 +576,22 @@ class WebserverPublisherService
     protected function getConfigPath(Server $server, ?string $webserverType): string
     {
         $webserverType = $webserverType ?? $server->webserver_type ?? 'nginx';
+        $serverPath = $server->config_path ?? '';
 
         if ($webserverType === 'apache') {
-            return rtrim($server->config_path ?: '/etc/apache2/sites-available', '/\\');
+            // If server path is for nginx, use apache default
+            if ($serverPath && str_contains($serverPath, 'nginx')) {
+                return '/etc/apache2/sites-available';
+            }
+            return rtrim($serverPath ?: '/etc/apache2/sites-available', '/\\');
         }
 
-        return rtrim($server->config_path ?: '/etc/nginx/sites-available', '/\\');
+        // If server path is for apache, use nginx default
+        if ($serverPath && str_contains($serverPath, 'apache')) {
+            return '/etc/nginx/sites-available';
+        }
+
+        return rtrim($serverPath ?: '/etc/nginx/sites-available', '/\\');
     }
 
     /**
@@ -590,11 +600,21 @@ class WebserverPublisherService
     protected function getSymlinkPath(Server $server, ?string $webserverType): string
     {
         $webserverType = $webserverType ?? $server->webserver_type ?? 'nginx';
+        $serverPath = $server->symlink_path ?? '';
 
         if ($webserverType === 'apache') {
-            return rtrim($server->symlink_path ?: '/etc/apache2/sites-enabled', '/\\');
+            // If server path is for nginx, use apache default
+            if ($serverPath && str_contains($serverPath, 'nginx')) {
+                return '/etc/apache2/sites-enabled';
+            }
+            return rtrim($serverPath ?: '/etc/apache2/sites-enabled', '/\\');
         }
 
-        return rtrim($server->symlink_path ?: '/etc/nginx/sites-enabled', '/\\');
+        // If server path is for apache, use nginx default
+        if ($serverPath && str_contains($serverPath, 'apache')) {
+            return '/etc/nginx/sites-enabled';
+        }
+
+        return rtrim($serverPath ?: '/etc/nginx/sites-enabled', '/\\');
     }
 }
