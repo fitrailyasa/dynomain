@@ -60,6 +60,22 @@
                                 <i class="fas {{ $item->server->type === 'ssh' ? 'fa-terminal' : 'fa-server' }}"></i>
                                 {{ $item->server->name }}
                             </span>
+                            @can('edit:server')
+                                <div class="mt-1">
+                                    <form action="{{ route('admin.server.reload-nginx', $item->server->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-xs btn-warning text-dark m-1" title="Reload Nginx on {{ $item->server->name }}" onclick="return confirm('Reload nginx di {{ $item->server->name }}?')">
+                                            <i class="fas fa-sync-alt"></i> Reload
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.server.restart-nginx', $item->server->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-xs btn-danger text-white m-1" title="Restart Nginx on {{ $item->server->name }}" onclick="return confirm('Restart nginx di {{ $item->server->name }}?')">
+                                            <i class="fas fa-redo"></i> Restart
+                                        </button>
+                                    </form>
+                                </div>
+                            @endcan
                         @else
                             <span class="badge bg-secondary"><i class="fas fa-server"></i> Server Lokal</span>
                         @endif

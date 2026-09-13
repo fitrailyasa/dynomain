@@ -31,6 +31,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('server', AdminServerController::class);
         Route::patch('server/{id}/toggle-status', [AdminServerController::class, 'toggleStatus'])->name('server.toggle-status');
         Route::post('server/{id}/test-connection', [AdminServerController::class, 'testConnection'])->name('server.test-connection');
+        Route::post('server/{id}/reload-nginx', [AdminServerController::class, 'reloadNginx'])->name('server.reload-nginx');
+        Route::post('server/{id}/restart-nginx', [AdminServerController::class, 'restartNginx'])->name('server.restart-nginx');
 
         Route::resource('domain', AdminDomainController::class);
         Route::patch('domain/{id}/toggle-status', [AdminDomainController::class, 'toggleStatus'])->name('domain.toggle-status');
