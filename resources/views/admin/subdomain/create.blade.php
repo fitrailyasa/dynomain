@@ -51,13 +51,18 @@
 
                         <!-- Target Server Selection -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ __('Target Server (Lokal / SSH Remote)') }}</label>
-                            <select class="form-select" name="server_id">
-                                <option value="">Server Lokal (Localhost / Server Ini)</option>
-                                @foreach($servers as $srv)
-                                    <option value="{{ $srv->id }}">{{ $srv->name }} ({{ strtoupper($srv->type) }} - {{ $srv->host ?: 'Local' }})</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">{{ __('Target Server (SSH Remote)') }}<span class="text-danger">*</span></label>
+                            @if($servers->isEmpty())
+                                <div class="alert alert-warning mb-0 py-2">
+                                    <i class="fas fa-exclamation-triangle"></i> Belum ada Server SSH. <a href="{{ route('admin.server.index') }}" target="_blank">Tambah Server SSH dulu</a>.
+                                </div>
+                            @else
+                                <select class="form-select" name="server_id" required>
+                                    @foreach($servers as $srv)
+                                        <option value="{{ $srv->id }}">{{ $srv->name }} ({{ strtoupper($srv->type) }} - {{ $srv->host ?: 'Local' }})</option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </div>
 
                         <!-- Webserver Type -->
@@ -88,8 +93,8 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ __('Mode SSL / HTTPS') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="ssl_type" required>
+                                <option value="certbot" selected>Certbot Let's Encrypt (Port 443 SSL)</option>
                                 <option value="cloudflare">Cloudflare Proxy (Port 80 HTTP + Real IP Header)</option>
-                                <option value="certbot">Certbot Let's Encrypt (Port 443 SSL)</option>
                                 <option value="custom">Custom SSL Certificate</option>
                                 <option value="none">Tidak Pakai SSL (HTTP Plain)</option>
                             </select>
