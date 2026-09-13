@@ -66,12 +66,13 @@ class WebserverPublisherService
     public function publishLocal(Domain|Subdomain $item, Server $server): array
     {
         $filename = $this->generator->getFilename($item);
-        $configContent = $this->generator->generate($item, $server->webserver_type);
+        $configContent = $this->generator->generate($item, $item->webserver_type ?? $server->webserver_type);
 
         $log = [];
         $log[] = "[Local Publish] Starting configuration publishing for file: {$filename}";
 
-        $configPath = rtrim($server->config_path ?: '/etc/nginx/sites-available', '/\\');
+        $configPath = $this->getConfigPath($server, $item->webserver_type);
+        $symlinkPath = $this->getSymlinkPath($server, $item->webserver_type);
         $storageBackupPath = storage_path('app/webservers');
         if (!File::exists($storageBackupPath)) {
             File::makeDirectory($storageBackupPath, 0755, true);
@@ -106,7 +107,6 @@ class WebserverPublisherService
         }
 
         // Symlink creation if Nginx/Apache sites-enabled is used
-        $symlinkPath = rtrim($server->symlink_path ?: '', '/\\');
         if ($symlinkPath && $writtenToSystem) {
             $symlinkTarget = $symlinkPath . '/' . $filename;
             if (!File::exists($symlinkPath)) {
@@ -127,7 +127,7 @@ class WebserverPublisherService
         }
 
         // Run config test and reload
-        $webserverType = $server->webserver_type ?? 'nginx';
+        $webserverType = $item->webserver_type ?? $server->webserver_type ?? 'nginx';
         $testCmd = ($webserverType === 'apache') ? 'sudo apache2ctl configtest' : 'sudo nginx -t';
         $reloadCmd = $server->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
 
@@ -178,10 +178,10 @@ class WebserverPublisherService
             $log[] = "[SSH Publish] Connected to SSH server successfully.";
 
             $filename = $this->generator->getFilename($item);
-            $configContent = $this->generator->generate($item, $server->webserver_type);
+            $configContent = $this->generator->generate($item, $item->webserver_type ?? $server->webserver_type);
 
-            $configPath = rtrim($server->config_path ?: '/etc/nginx/sites-available', '/\\');
-            $symlinkPath = rtrim($server->symlink_path ?: '', '/\\');
+            $configPath = $this->getConfigPath($server, $item->webserver_type);
+            $symlinkPath = $this->getSymlinkPath($server, $item->webserver_type);
 
             $remoteTarget = "{$configPath}/{$filename}";
             $remoteSymlink = $symlinkPath ? "{$symlinkPath}/{$filename}" : '';
@@ -208,7 +208,7 @@ class WebserverPublisherService
             }
 
             // Test configuration
-            $webserverType = $server->webserver_type ?? 'nginx';
+            $webserverType = $item->webserver_type ?? $server->webserver_type ?? 'nginx';
             $testCmd = ($webserverType === 'apache') ? 'sudo apache2ctl configtest' : 'sudo nginx -t';
             $log[] = "[SSH Publish] Running remote config test: {$testCmd}";
             $testResult = $ssh->exec($testCmd);
@@ -400,14 +400,16 @@ class WebserverPublisherService
         $filename = $this->generator->getFilename($item);
         $log = [];
 
+        $webserverType = $item->webserver_type ?? $targetServer->webserver_type ?? 'nginx';
+
         if ($targetServer->type === 'ssh') {
             $log[] = "[SSH Delete] Connecting to {$targetServer->username}@{$targetServer->host}";
             try {
                 $ssh = $this->createSshConnection($targetServer);
                 $log[] = "[SSH Delete] Connected.";
 
-                $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
-                $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+                $configPath = $this->getConfigPath($targetServer, $webserverType);
+                $symlinkPath = $this->getSymlinkPath($targetServer, $webserverType);
 
                 $remoteConfig = "{$configPath}/{$filename}";
                 $remoteSymlink = $symlinkPath ? "{$symlinkPath}/{$filename}" : '';
@@ -424,7 +426,6 @@ class WebserverPublisherService
                     $log[] = "[SSH Delete] Removed storage copy.";
                 }
 
-                $webserverType = $targetServer->webserver_type ?? 'nginx';
                 $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
                 $log[] = "[SSH Delete] Reloading: {$reloadCmd}";
                 $ssh->exec($reloadCmd);
@@ -435,8 +436,8 @@ class WebserverPublisherService
                 return ['success' => false, 'message' => 'Delete failed: ' . $e->getMessage(), 'log' => implode("\n", $log)];
             }
         } else {
-            $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
-            $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+            $configPath = $this->getConfigPath($targetServer, $webserverType);
+            $symlinkPath = $this->getSymlinkPath($targetServer, $webserverType);
 
             $localConfig = $configPath . '/' . $filename;
             $localSymlink = $symlinkPath ? $symlinkPath . '/' . $filename : '';
@@ -465,7 +466,6 @@ class WebserverPublisherService
                 $log[] = "[Local Delete] Removed storage copy.";
             }
 
-            $webserverType = $targetServer->webserver_type ?? 'nginx';
             $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
             $log[] = "[Local Delete] Reloading: {$reloadCmd}";
             Process::run($reloadCmd);
@@ -478,13 +478,14 @@ class WebserverPublisherService
      * Cleanup old config files when domain/subdomain name changes (rename logic).
      * Removes old config + symlink if filename differs from current.
      */
-    public function cleanupOldConfig(Domain|Subdomain $item, string $oldFilename, ?Server $server = null): array
+    public function cleanupOldConfig(Domain|Subdomain $item, string $oldFilename, ?Server $server = null, ?string $oldWebserverType = null): array
     {
         $newFilename = $this->generator->getFilename($item);
+        $newWebserverType = $item->webserver_type ?? $server?->webserver_type ?? 'nginx';
 
-        // If filename hasn't changed, nothing to cleanup
-        if ($oldFilename === $newFilename) {
-            return ['success' => true, 'message' => 'Filename unchanged, no cleanup needed.', 'log' => ''];
+        // If nothing changed, nothing to cleanup
+        if ($oldFilename === $newFilename && $oldWebserverType === $newWebserverType) {
+            return ['success' => true, 'message' => 'Filename and webserver type unchanged, no cleanup needed.', 'log' => ''];
         }
 
         $targetServer = $server ?? $item->server;
@@ -498,16 +499,25 @@ class WebserverPublisherService
         }
 
         $log = [];
-        $log[] = "[Cleanup] Filename changed: {$oldFilename} -> {$newFilename}";
+
+        // Determine old config path based on old webserver type
+        $oldConfigPath = $this->getConfigPath($targetServer, $oldWebserverType);
+        $oldSymlinkPath = $this->getSymlinkPath($targetServer, $oldWebserverType);
+
+        if ($oldFilename !== $newFilename) {
+            $log[] = "[Cleanup] Filename changed: {$oldFilename} -> {$newFilename}";
+        }
+        if ($oldWebserverType && $oldWebserverType !== $newWebserverType) {
+            $log[] = "[Cleanup] Webserver type changed: {$oldWebserverType} -> {$newWebserverType}";
+            $log[] = "[Cleanup] Old config path: {$oldConfigPath}";
+        }
 
         if ($targetServer->type === 'ssh') {
             try {
                 $ssh = $this->createSshConnection($targetServer);
-                $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
-                $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
 
-                $oldConfig = "{$configPath}/{$oldFilename}";
-                $oldSymlink = $symlinkPath ? "{$symlinkPath}/{$oldFilename}" : '';
+                $oldConfig = "{$oldConfigPath}/{$oldFilename}";
+                $oldSymlink = $oldSymlinkPath ? "{$oldSymlinkPath}/{$oldFilename}" : '';
 
                 if (!empty($oldSymlink)) {
                     $ssh->exec("sudo rm -f " . escapeshellarg($oldSymlink));
@@ -529,11 +539,8 @@ class WebserverPublisherService
                 return ['success' => false, 'message' => 'Cleanup failed: ' . $e->getMessage(), 'log' => implode("\n", $log)];
             }
         } else {
-            $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
-            $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
-
-            $oldConfig = $configPath . '/' . $oldFilename;
-            $oldSymlink = $symlinkPath ? $symlinkPath . '/' . $oldFilename : '';
+            $oldConfig = $oldConfigPath . '/' . $oldFilename;
+            $oldSymlink = $oldSymlinkPath ? $oldSymlinkPath . '/' . $oldFilename : '';
 
             try {
                 if (!empty($oldSymlink) && (is_link($oldSymlink) || file_exists($oldSymlink))) {
@@ -561,5 +568,33 @@ class WebserverPublisherService
 
             return ['success' => true, 'message' => 'Old config cleaned up.', 'log' => implode("\n", $log)];
         }
+    }
+
+    /**
+     * Get config path based on webserver type.
+     */
+    protected function getConfigPath(Server $server, ?string $webserverType): string
+    {
+        $webserverType = $webserverType ?? $server->webserver_type ?? 'nginx';
+
+        if ($webserverType === 'apache') {
+            return rtrim($server->config_path ?: '/etc/apache2/sites-available', '/\\');
+        }
+
+        return rtrim($server->config_path ?: '/etc/nginx/sites-available', '/\\');
+    }
+
+    /**
+     * Get symlink path based on webserver type.
+     */
+    protected function getSymlinkPath(Server $server, ?string $webserverType): string
+    {
+        $webserverType = $webserverType ?? $server->webserver_type ?? 'nginx';
+
+        if ($webserverType === 'apache') {
+            return rtrim($server->symlink_path ?: '/etc/apache2/sites-enabled', '/\\');
+        }
+
+        return rtrim($server->symlink_path ?: '/etc/nginx/sites-enabled', '/\\');
     }
 }

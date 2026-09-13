@@ -80,33 +80,49 @@
                             <span class="badge bg-secondary"><i class="fas fa-server"></i> Server Lokal</span>
                         @endif
                     </td>
-                    <td>
-                        @if($item->publish_status === 'published')
-                            <span class="badge bg-success" title="Published: {{ $item->published_at }}"><i class="fas fa-check-circle"></i> Published</span>
-                        @elseif($item->publish_status === 'failed')
-                            <span class="badge bg-danger" title="Publish Error"><i class="fas fa-times-circle"></i> Failed</span>
-                        @else
-                            <span class="badge bg-secondary"><i class="fas fa-clock"></i> Pending</span>
-                        @endif
-
-                        @if($item->publish_log)
-                            <button type="button" class="btn btn-xs btn-link p-0 d-block text-left" data-bs-toggle="modal" data-bs-target="#subLogModal{{ $item->id }}">
-                                <small>View Log</small>
-                            </button>
-                            <div class="modal fade" id="subLogModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content text-left">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Publish Log - {{ $item->name }}</h5>
-                                            <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-                                        </div>
-                                        <div class="modal-body bg-dark text-light p-3">
-                                            <pre class="m-0 text-light" style="white-space: pre-wrap;">{{ $item->publish_log }}</pre>
+                    <td class="text-center">
+                        @can('edit:subdomain')
+                            @if($item->publish_status === 'published')
+                                <form action="{{ route('admin.subdomain.unpublish', $item->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-xs btn-success" title="Published - Klik untuk Unpublish" onclick="return confirm('Unpublish config {{ $item->name }}? Config akan di-disable dari server.')">
+                                        <i class="fas fa-check-circle"></i> Published
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('admin.subdomain.publish-config', $item->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-xs btn-outline-secondary" title="Unpublished - Klik untuk Publish" onclick="return confirm('Publish config {{ $item->name }} ke {{ $item->server ? $item->server->name : 'Server Lokal' }}?')">
+                                        <i class="fas fa-clock"></i> Unpublished
+                                    </button>
+                                </form>
+                            @endif
+                            @if($item->publish_log)
+                                <br>
+                                <button type="button" class="btn btn-xs btn-link p-0" data-bs-toggle="modal" data-bs-target="#subLogModal{{ $item->id }}">
+                                    <small>View Log</small>
+                                </button>
+                                <div class="modal fade" id="subLogModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content text-left">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Publish Log - {{ $item->name }}</h5>
+                                                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                                            </div>
+                                            <div class="modal-body bg-dark text-light p-3">
+                                                <pre class="m-0 text-light" style="white-space: pre-wrap;">{{ $item->publish_log }}</pre>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        @endif
+                            @endif
+                        @else
+                            @if($item->publish_status === 'published')
+                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> Published</span>
+                            @else
+                                <span class="badge bg-secondary"><i class="fas fa-clock"></i> Unpublished</span>
+                            @endif
+                        @endcan
                     </td>
                     <td>
                         <form action="{{ route('admin.subdomain.toggle-status', $item->id) }}" method="POST" class="d-inline">
@@ -126,14 +142,6 @@
                                 <button type="button" class="btn btn-sm btn-info text-white m-1" onclick="previewSubdomainConfig('{{ route('admin.subdomain.preview-config', $item->id) }}')" title="Preview Webserver Config">
                                     <i class="fas fa-code"></i> Preview
                                 </button>
-
-                                <!-- Auto Publish Button -->
-                                <form action="{{ route('admin.subdomain.publish-config', $item->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-success text-white m-1" title="Publish Config Ke Server" onclick="return confirm('Publish konfigurasi untuk subdomain {{ $item->name }}?')">
-                                        <i class="fas fa-paper-plane"></i> Publish
-                                    </button>
-                                </form>
 
                                 @include('admin.subdomain.edit')
                             @endcan

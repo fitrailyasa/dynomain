@@ -73,14 +73,15 @@ class AdminSubdomainController extends Controller implements HasMiddleware
     {
         $subdomain = Subdomain::findOrFail($id);
 
-        // Get old filename before update
+        // Get old filename and webserver type before update
         $oldFilename = $publisher->getGenerator()->getFilename($subdomain);
+        $oldWebserverType = $subdomain->webserver_type;
 
         $subdomain->update($request->validated());
 
-        // Cleanup old config files if filename changed
+        // Cleanup old config files if filename or webserver type changed
         $server = $subdomain->server;
-        $publisher->cleanupOldConfig($subdomain, $oldFilename, $server);
+        $publisher->cleanupOldConfig($subdomain, $oldFilename, $server, $oldWebserverType);
 
         // Auto-publish config ke server setelah update
         $result = $publisher->publish($subdomain, $server);
@@ -133,6 +134,18 @@ class AdminSubdomainController extends Controller implements HasMiddleware
         }
 
         return back()->with('error', $result['message'] . "\n\nLog Details:\n" . $result['log']);
+    }
+
+    public function unpublish(string $id, WebserverPublisherService $publisher)
+    {
+        $subdomain = Subdomain::findOrFail($id);
+        $result = $publisher->unpublish($subdomain);
+
+        if ($result['success']) {
+            return back()->with('success', 'Config unpublished successfully!');
+        }
+
+        return back()->with('error', 'Unpublish failed: ' . $result['message']);
     }
 
     public function destroy(string $id)

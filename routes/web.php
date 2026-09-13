@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('subdomain/{id}/toggle-status', [AdminSubdomainController::class, 'toggleStatus'])->name('subdomain.toggle-status');
         Route::get('subdomain/{id}/preview-config', [AdminSubdomainController::class, 'previewConfig'])->name('subdomain.preview-config');
         Route::post('subdomain/{id}/publish-config', [AdminSubdomainController::class, 'publishConfig'])->name('subdomain.publish-config');
+        Route::post('subdomain/{id}/unpublish', [AdminSubdomainController::class, 'unpublish'])->name('subdomain.unpublish');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

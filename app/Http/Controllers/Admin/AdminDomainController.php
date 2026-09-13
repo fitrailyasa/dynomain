@@ -70,17 +70,18 @@ class AdminDomainController extends Controller implements HasMiddleware
     {
         $domain = Domain::findOrFail($id);
 
-        // Get old filename before update
+        // Get old filename and webserver type before update
         $oldFilename = $publisher->getGenerator()->getFilename($domain);
+        $oldWebserverType = $domain->webserver_type;
 
         $domainData = $request->validated();
         $domainData['is_wildcard'] = $request->has('is_wildcard');
 
         $domain->update($domainData);
 
-        // Cleanup old config files if filename changed
+        // Cleanup old config files if filename or webserver type changed
         $server = $domain->server;
-        $publisher->cleanupOldConfig($domain, $oldFilename, $server);
+        $publisher->cleanupOldConfig($domain, $oldFilename, $server, $oldWebserverType);
 
         // Auto-publish config ke server setelah update
         $result = $publisher->publish($domain, $server);
