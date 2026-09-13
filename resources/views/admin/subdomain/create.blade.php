@@ -106,13 +106,13 @@
                             <label class="form-label">{{ __('Custom Directives (Nginx / Apache Header/Rules)') }}</label>
                             <div class="input-group mb-2">
                                 <span class="input-group-text"><i class="fas fa-cog"></i></span>
-                                <select class="form-select" name="custom_config_mode" id="custom_config_mode_create">
+                                <select class="form-select" name="custom_config_mode" id="custom_config_mode_subdomain_create" onchange="toggleCustomConfig(this, 'custom_config_textarea_subdomain_create')">
                                     <option value="default">Default - Pakai config bawaan Nginx/Apache</option>
                                     <option value="replace">Replace - Timpa semua dengan custom directives</option>
                                     <option value="add">Add - Gabungkan config bawaan + custom directives</option>
                                 </select>
                             </div>
-                            <textarea class="form-control font-monospace" name="custom_nginx_config" rows="3" placeholder="# Custom rules... (hanya aktif jika mode Replace atau Add)"></textarea>
+                            <textarea class="form-control font-monospace" name="custom_nginx_config" id="custom_config_textarea_subdomain_create" rows="3" placeholder="# Custom rules... (hanya aktif jika mode Replace atau Add)" style="display:none"></textarea>
                             <small class="text-muted">Pilih mode terlebih dahulu. <strong>Default</strong> = ignore custom directives. <strong>Replace</strong> = timpa semua. <strong>Add</strong> = gabungkan.</small>
                         </div>
                     </div>
@@ -125,3 +125,9 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleCustomConfig(select, textareaId) {
+    document.getElementById(textareaId).style.display = select.value === 'default' ? 'none' : 'block';
+}
+</script>
