@@ -591,13 +591,4 @@ class WebserverPublisherService
 
         return '/etc/nginx/sites-enabled';
     }
-        }
-
-        // If server path is for apache, use nginx default
-        if ($serverPath && str_contains($serverPath, 'apache')) {
-            return '/etc/nginx/sites-enabled';
-        }
-
-        return rtrim($serverPath ?: '/etc/nginx/sites-enabled', '/\\');
-    }
 }

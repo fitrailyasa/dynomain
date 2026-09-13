@@ -55,6 +55,10 @@ class WebserverGeneratorService
             $targetDest = $item->target_destination ?? '/var/www/html/public';
         }
 
+        if ($targetType === 'wordpress') {
+            $targetDest = $item->target_destination ?? '/var/www/html';
+        }
+
         $sslType = $item->ssl_type ?? 'cloudflare';
         $sslCertPath = $item->ssl_cert_path ?? '/etc/ssl/certs/ssl-cert-snakeoil.pem';
         $sslKeyPath = $item->ssl_key_path ?? '/etc/ssl/private/ssl-cert-snakeoil.key';
@@ -138,6 +142,33 @@ class WebserverGeneratorService
             $output .= "        expires 30d;\n";
             $output .= "        add_header Cache-Control \"public, immutable\";\n";
             $output .= "    }\n";
+        } elseif ($targetType === 'wordpress') {
+            // WordPress-specific Nginx config
+            $output .= "    root {$targetDest};\n";
+            $output .= "    index index.php index.html index.htm;\n\n";
+            $output .= "    charset utf-8;\n";
+            $output .= "    error_page 404 /index.php;\n\n";
+            $output .= "    # WordPress Pretty Permalinks\n";
+            $output .= "    location / {\n";
+            $output .= "        try_files \$uri \$uri/ /index.php?\$args;\n";
+            $output .= "    }\n\n";
+            $output .= "    # PHP-FPM Configuration\n";
+            $output .= "    location ~ \\.php$ {\n";
+            $output .= "        fastcgi_pass unix:/run/php/php8.3-fpm.sock;\n";
+            $output .= "        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;\n";
+            $output .= "        include fastcgi_params;\n";
+            $output .= "    }\n\n";
+            $output .= "    # Deny .htaccess and other hidden files\n";
+            $output .= "    location ~ /\\.ht {\n";
+            $output .= "        deny all;\n";
+            $output .= "    }\n\n";
+            $output .= "    # Static files cache\n";
+            $output .= "    location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n";
+            $output .= "        expires 30d;\n";
+            $output .= "        add_header Cache-Control \"public, immutable\";\n";
+            $output .= "    }\n\n";
+            $output .= "    # Uploads size limit\n";
+            $output .= "    client_max_body_size 64M;\n";
         } elseif ($targetType === 'webroot') {
             $output .= "    root {$targetDest};\n";
             $output .= "    index index.php index.html index.htm;\n\n";
@@ -204,6 +235,10 @@ class WebserverGeneratorService
             $targetDest = $item->target_destination ?? '/var/www/html/public';
         }
 
+        if ($targetType === 'wordpress') {
+            $targetDest = $item->target_destination ?? '/var/www/html';
+        }
+
         $customConfig = trim($item->custom_nginx_config ?? '');
         $customConfigMode = $item->custom_config_mode ?? 'default';
 
@@ -250,6 +285,30 @@ class WebserverGeneratorService
             $output .= "    <FilesMatch \".\\.\">\n";
             $output .= "        Require all denied\n";
             $output .= "    </FilesMatch>\n\n";
+            $output .= "    # PHP configuration\n";
+            $output .= "    <IfModule mod_php.c>\n";
+            $output .= "        php_value upload_max_filesize 64M\n";
+            $output .= "        php_value post_max_size 64M\n";
+            $output .= "        php_value max_execution_time 300\n";
+            $output .= "        php_value max_input_time 300\n";
+            $output .= "    </IfModule>\n";
+        } elseif ($targetType === 'wordpress') {
+            // WordPress-specific Apache config
+            $output .= "    DocumentRoot {$targetDest}\n";
+            $output .= "    <Directory {$targetDest}>\n";
+            $output .= "        Options -Indexes +FollowSymLinks +MultiViews\n";
+            $output .= "        AllowOverride All\n";
+            $output .= "        Require all granted\n";
+            $output .= "    </Directory>\n\n";
+            $output .= "    # WordPress Pretty Permalinks\n";
+            $output .= "    <IfModule mod_rewrite.c>\n";
+            $output .= "        RewriteEngine On\n";
+            $output .= "        RewriteBase /\n";
+            $output .= "        RewriteRule ^index\\.php$ - [L]\n";
+            $output .= "        RewriteCond %{REQUEST_FILENAME} !-f\n";
+            $output .= "        RewriteCond %{REQUEST_FILENAME} !-d\n";
+            $output .= "        RewriteRule . /index.php [L]\n";
+            $output .= "    </IfModule>\n\n";
             $output .= "    # PHP configuration\n";
             $output .= "    <IfModule mod_php.c>\n";
             $output .= "        php_value upload_max_filesize 64M\n";
