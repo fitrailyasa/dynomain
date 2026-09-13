@@ -62,18 +62,12 @@
                             </span>
                             @can('edit:server')
                                 <div class="mt-1">
-                                    <form action="{{ route('admin.server.reload-nginx', $item->server->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-xs btn-warning text-dark m-1" title="Reload Nginx on {{ $item->server->name }}" onclick="return confirm('Reload nginx di {{ $item->server->name }}?')">
-                                            <i class="fas fa-sync-alt"></i> Reload
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('admin.server.restart-nginx', $item->server->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-xs btn-danger text-white m-1" title="Restart Nginx on {{ $item->server->name }}" onclick="return confirm('Restart nginx di {{ $item->server->name }}?')">
-                                            <i class="fas fa-redo"></i> Restart
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-xs btn-warning text-dark m-1" title="Reload Nginx on {{ $item->server->name }}" onclick="reloadNginx('{{ $item->server->id }}', '{{ $item->server->name }}', '{{ $item->name }}')">
+                                        <i class="fas fa-sync-alt"></i> Reload
+                                    </button>
+                                    <button type="button" class="btn btn-xs btn-danger text-white m-1" title="Restart Nginx on {{ $item->server->name }}" onclick="restartNginx('{{ $item->server->id }}', '{{ $item->server->name }}', '{{ $item->name }}')">
+                                        <i class="fas fa-redo"></i> Restart
+                                    </button>
                                 </div>
                             @endcan
                         @else
@@ -192,6 +186,90 @@
             content.select();
             document.execCommand('copy');
             alert('Config copied to clipboard!');
+        }
+
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        function reloadNginx(serverId, serverName, domainName) {
+            Swal.fire({
+                title: 'Reload Nginx?',
+                html: 'Reload nginx di <strong>' + serverName + '</strong> untuk domain <strong>' + domainName + '</strong>?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#e0a800',
+                confirmButtonText: '<i class="fas fa-sync-alt"></i> Reload',
+                showLoaderOnConfirm: true,
+                preConfirm: function() {
+                    return fetch('/admin/server/' + serverId + '/reload-nginx', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (!data.success) throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(function(error) {
+                        Swal.showValidationMessage(error.message);
+                    });
+                },
+                allowOutsideClick: false
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        html: '<strong>' + result.value.message + '</strong><br><br><pre style="text-align:left;font-size:12px;max-height:300px;overflow:auto;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:5px;">' + result.value.log + '</pre>',
+                        icon: 'success',
+                        confirmButtonColor: '#28a745'
+                    });
+                }
+            });
+        }
+
+        function restartNginx(serverId, serverName, domainName) {
+            Swal.fire({
+                title: 'Restart Nginx?',
+                html: 'Restart nginx di <strong>' + serverName + '</strong> untuk domain <strong>' + domainName + '</strong>?<br><br><small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Server akan restart dalam ~2 detik. Koneksi mungkin terputus sesaat.</small>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: '<i class="fas fa-redo"></i> Restart',
+                showLoaderOnConfirm: true,
+                preConfirm: function() {
+                    return fetch('/admin/server/' + serverId + '/restart-nginx', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (!data.success) throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(function(error) {
+                        Swal.showValidationMessage(error.message);
+                    });
+                },
+                allowOutsideClick: false
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        html: '<strong>' + result.value.message + '</strong><br><br><pre style="text-align:left;font-size:12px;max-height:300px;overflow:auto;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:5px;">' + result.value.log + '</pre>',
+                        icon: 'success',
+                        confirmButtonColor: '#28a745'
+                    });
+                }
+            });
         }
     </script>
 
