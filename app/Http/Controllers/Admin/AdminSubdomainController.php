@@ -69,12 +69,20 @@ class AdminSubdomainController extends Controller implements HasMiddleware
         }
     }
 
-    public function update(SubdomainRequest $request, string $id)
+    public function update(SubdomainRequest $request, string $id, WebserverPublisherService $publisher)
     {
         $subdomain = Subdomain::findOrFail($id);
         $subdomain->update($request->validated());
 
-        return back()->with('success', 'Successfully Edit ' . $this->title . '!');
+        // Auto-publish config ke server setelah update
+        $server = $subdomain->server;
+        $result = $publisher->publish($subdomain, $server);
+
+        if ($result['success']) {
+            return back()->with('success', 'Successfully Updated ' . $this->title . ' & config published to server!');
+        }
+
+        return back()->with('warning', 'Updated ' . $this->title . ' in database, but publish failed: ' . $result['message']);
     }
 
     public function toggleStatus(string $id)

@@ -66,7 +66,7 @@ class AdminDomainController extends Controller implements HasMiddleware
         }
     }
 
-    public function update(DomainRequest $request, string $id)
+    public function update(DomainRequest $request, string $id, WebserverPublisherService $publisher)
     {
         $domain = Domain::findOrFail($id);
         $domainData = $request->validated();
@@ -74,7 +74,15 @@ class AdminDomainController extends Controller implements HasMiddleware
 
         $domain->update($domainData);
 
-        return back()->with('success', 'Successfully Updated ' . $this->title . '!');
+        // Auto-publish config ke server setelah update
+        $server = $domain->server;
+        $result = $publisher->publish($domain, $server);
+
+        if ($result['success']) {
+            return back()->with('success', 'Successfully Updated ' . $this->title . ' & config published to server!');
+        }
+
+        return back()->with('warning', 'Updated ' . $this->title . ' in database, but publish failed: ' . $result['message']);
     }
 
     public function toggleStatus(string $id)
