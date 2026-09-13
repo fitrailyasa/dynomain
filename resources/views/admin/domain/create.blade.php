@@ -37,8 +37,8 @@
                         <div class="col-md-12 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="is_wildcard" id="is_wildcard_create" value="1">
-                                <label class="form-check-label font-weight-bold" for="is_wildcard_create" style="word-wrap: break-word; white-space: normal;">
-                                    {{ __('Wildcard Cloudflare (*.domain.com)') }}
+                                <label class="form-check-label" for="is_wildcard_create">
+                                    Wildcard <code>*.domain.com</code>
                                 </label>
                             </div>
                         </div>

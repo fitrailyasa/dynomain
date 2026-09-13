@@ -31,8 +31,8 @@
                         <div class="col-md-12 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="is_wildcard" id="is_wildcard_edit_{{ $item->id }}" value="1" {{ $item->is_wildcard ? 'checked' : '' }}>
-                                <label class="form-check-label font-weight-bold" for="is_wildcard_edit_{{ $item->id }}">
-                                    Aktifkan Wildcard Domain Cloudflare (Otomatis match <code>*.{{ $item->name }}</code> dan <code>{{ $item->name }}</code>)
+                                <label class="form-check-label" for="is_wildcard_edit_{{ $item->id }}">
+                                    Wildcard <code>*.{{ $item->name }}</code>
                                 </label>
                             </div>
                         </div>
