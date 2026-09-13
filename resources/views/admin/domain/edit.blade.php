@@ -5,7 +5,7 @@
 
 <!-- Modal Edit -->
 <div class="modal fade" id="editDomainModal{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <form method="POST" action="{{ route('admin.domain.update', $item->id) }}">
                 @csrf

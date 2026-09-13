@@ -4,7 +4,7 @@
 
 <!-- Modal -->
 <div class="modal fade formCreateSubdomain" tabindex="-1" role="dialog" aria-labelledby="modalSubdomainLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <form method="POST" action="{{ route('admin.subdomain.store') }}">
                 @csrf
