@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminDomainController;
 use App\Http\Controllers\Admin\AdminSubdomainController;
 use App\Http\Controllers\Admin\AdminServerController;
 use App\Http\Controllers\Admin\AdminGithubSshController;
+use App\Http\Controllers\Admin\AdminServerTaskController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,9 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('github-ssh', AdminGithubSshController::class);
         Route::patch('github-ssh/{id}/toggle-status', [AdminGithubSshController::class, 'toggleStatus'])->name('github-ssh.toggle-status');
+
+        Route::get('server-task', [AdminServerTaskController::class, 'index'])->name('server-task.index');
+        Route::post('server-task/execute', [AdminServerTaskController::class, 'execute'])->name('server-task.execute');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
