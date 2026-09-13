@@ -66,6 +66,7 @@
                                 <option value="proxy" {{ $item->target_type === 'proxy' ? 'selected' : '' }}>Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
                                 <option value="webroot" {{ $item->target_type === 'webroot' ? 'selected' : '' }}>Web Root / Directory (e.g. /var/www/html)</option>
                                 <option value="laravel" {{ $item->target_type === 'laravel' ? 'selected' : '' }}>Laravel Project (e.g. /var/www/app/public)</option>
+                                <option value="wordpress" {{ $item->target_type === 'wordpress' ? 'selected' : '' }}>WordPress Project (e.g. /var/www/wordpress)</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">

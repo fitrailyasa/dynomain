@@ -16,10 +16,10 @@ return new class extends Migration
             $this->recreateSubdomainsTable();
         } else {
             Schema::table('domains', function (Blueprint $table) {
-                $table->enum('target_type', ['proxy', 'webroot', 'laravel'])->default('proxy')->change();
+                $table->enum('target_type', ['proxy', 'webroot', 'laravel', 'wordpress'])->default('proxy')->change();
             });
             Schema::table('subdomains', function (Blueprint $table) {
-                $table->enum('target_type', ['proxy', 'webroot', 'laravel'])->default('proxy')->change();
+                $table->enum('target_type', ['proxy', 'webroot', 'laravel', 'wordpress'])->default('proxy')->change();
             });
         }
     }

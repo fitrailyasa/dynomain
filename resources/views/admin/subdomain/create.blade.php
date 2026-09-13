@@ -76,6 +76,7 @@
                                 <option value="proxy">Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
                                 <option value="webroot">Web Root / Directory (e.g. /var/www/html)</option>
                                 <option value="laravel">Laravel Project (e.g. /var/www/app/public)</option>
+                                <option value="wordpress">WordPress Project (e.g. /var/www/wordpress)</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
