@@ -27,7 +27,7 @@ class SubdomainRequest extends FormRequest
             'status' => 'required|in:0,1',
             'domain_id' => 'required|exists:domains,id',
             'webserver_type' => 'required|in:nginx,apache',
-            'target_type' => 'required|in:proxy,webroot',
+            'target_type' => 'required|in:proxy,webroot,laravel',
             'target_destination' => 'nullable|string|max:255',
             'server_id' => 'nullable|exists:servers,id',
             'ssl_type' => 'required|in:none,cloudflare,certbot,custom',
