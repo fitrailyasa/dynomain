@@ -17,7 +17,15 @@
         @include('components.search')
         @can('delete:user')
             <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" style="display:none" onclick="bulkDeleteConfirm('user')">
-                <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+                <i class="fas fa-trash"></i> Delete (<span id="selectedCount">0</span>)
+            </button>
+        @endcan
+        @can('edit:user')
+            <button type="button" class="btn btn-sm btn-success ms-2" id="bulkStatusOnBtn" style="display:none" onclick="bulkStatusConfirm('user', 1)">
+                <i class="fas fa-check-circle"></i> Verify
+            </button>
+            <button type="button" class="btn btn-sm btn-warning ms-2" id="bulkStatusOffBtn" style="display:none" onclick="bulkStatusConfirm('user', 0)">
+                <i class="fas fa-times-circle"></i> Unverify
             </button>
         @endcan
     </x-slot>

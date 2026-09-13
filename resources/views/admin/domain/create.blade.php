@@ -1,6 +1,6 @@
 <!-- Button to open modal -->
 <button role="button" class="btn btn-sm m-1 btn-primary" data-bs-toggle="modal" data-bs-target=".formCreateDomain"><i
-        class="fas fa-plus"></i><span class="d-none d-sm-inline"> {{ __('Tambah Domain / Wildcard') }}</span></button>
+        class="fas fa-plus"></i></button>
 
 <!-- Modal -->
 <div class="modal fade formCreateDomain" tabindex="-1" role="dialog" aria-labelledby="modalDomainLabel" aria-hidden="true">
@@ -37,8 +37,8 @@
                         <div class="col-md-12 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="is_wildcard" id="is_wildcard_create" value="1">
-                                <label class="form-check-label font-weight-bold" for="is_wildcard_create">
-                                    Aktifkan Wildcard Domain Cloudflare (Otomatis match <code>*.domain.com</code> dan <code>domain.com</code>)
+                                <label class="form-check-label font-weight-bold" for="is_wildcard_create" style="word-wrap: break-word; white-space: normal;">
+                                    {{ __('Wildcard Cloudflare (*.domain.com)') }}
                                 </label>
                             </div>
                         </div>

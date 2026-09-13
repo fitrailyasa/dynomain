@@ -65,7 +65,15 @@
         @include('components.search')
         @can('delete:subdomain')
             <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn" style="display:none" onclick="bulkDeleteConfirm('subdomain')">
-                <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+                <i class="fas fa-trash"></i> Delete (<span id="selectedCount">0</span>)
+            </button>
+        @endcan
+        @can('edit:subdomain')
+            <button type="button" class="btn btn-sm btn-success ms-2" id="bulkStatusOnBtn" style="display:none" onclick="bulkStatusConfirm('subdomain', 1)">
+                <i class="fas fa-check-circle"></i> Aktifkan
+            </button>
+            <button type="button" class="btn btn-sm btn-warning ms-2" id="bulkStatusOffBtn" style="display:none" onclick="bulkStatusConfirm('subdomain', 0)">
+                <i class="fas fa-times-circle"></i> Nonaktifkan
             </button>
         @endcan
     </x-slot>
@@ -188,7 +196,7 @@
                             @can('edit:subdomain')
                                 <!-- Preview Config Button -->
                                 <button type="button" class="btn btn-sm btn-info text-white m-1" onclick="previewSubdomainConfig('{{ route('admin.subdomain.preview-config', $item->id) }}')" title="Preview Webserver Config">
-                                    <i class="fas fa-code"></i> Preview
+                                    <i class="fas fa-code"></i>
                                 </button>
 
                                 @include('admin.subdomain.edit')
@@ -256,8 +264,12 @@
         function updateBulkBtn(entity) {
             var checked = document.querySelectorAll('.' + entity + '-checkbox:checked').length;
             var btn = document.getElementById('bulkDeleteBtn');
+            var btnOn = document.getElementById('bulkStatusOnBtn');
+            var btnOff = document.getElementById('bulkStatusOffBtn');
             document.getElementById('selectedCount').textContent = checked;
             btn.style.display = checked > 0 ? 'inline-block' : 'none';
+            if (btnOn) btnOn.style.display = checked > 0 ? 'inline-block' : 'none';
+            if (btnOff) btnOff.style.display = checked > 0 ? 'inline-block' : 'none';
         }
 
         function bulkDeleteConfirm(entity) {
@@ -283,6 +295,50 @@
                 method.name = '_method';
                 method.value = 'DELETE';
                 form.appendChild(method);
+
+                ids.forEach(function(id) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function bulkStatusConfirm(entity, status) {
+            var checked = document.querySelectorAll('.' + entity + '-checkbox:checked');
+            var ids = [];
+            checked.forEach(function(cb) { ids.push(cb.value); });
+
+            if (ids.length === 0) return;
+
+            var statusText = status == 1 ? 'aktifkan' : 'nonaktifkan';
+            if (confirm(statusText + ' ' + ids.length + ' item yang dipilih?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/' + entity + '/bulk-status';
+
+                var csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = '{{ csrf_token() }}';
+                form.appendChild(csrf);
+
+                var method = document.createElement('input');
+                method.type = 'hidden';
+                method.name = '_method';
+                method.value = 'PATCH';
+                form.appendChild(method);
+
+                var statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = status;
+                form.appendChild(statusInput);
 
                 ids.forEach(function(id) {
                     var input = document.createElement('input');

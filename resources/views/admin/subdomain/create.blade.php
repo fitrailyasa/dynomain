@@ -1,6 +1,6 @@
 <!-- Button to open modal -->
 <button role="button" class="btn btn-sm m-1 btn-primary" data-bs-toggle="modal" data-bs-target=".formCreateSubdomain"><i
-        class="fas fa-plus"></i><span class="d-none d-sm-inline"> {{ __('Tambah Subdomain') }}</span></button>
+        class="fas fa-plus"></i></button>
 
 <!-- Modal -->
 <div class="modal fade formCreateSubdomain" tabindex="-1" role="dialog" aria-labelledby="modalSubdomainLabel" aria-hidden="true">

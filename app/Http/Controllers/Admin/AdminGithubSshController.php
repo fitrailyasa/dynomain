@@ -99,4 +99,18 @@ class AdminGithubSshController extends Controller implements HasMiddleware
 
         return back()->with('success', 'Successfully deleted ' . count($ids) . ' GitHub SSH(s)!');
     }
+
+    public function bulkStatus(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $status = $request->input('status', 1);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected.');
+        }
+
+        GithubSsh::whereIn('id', $ids)->update(['status' => $status]);
+
+        return back()->with('success', "Successfully updated " . count($ids) . " GitHub SSH(s) status!");
+    }
 }

@@ -201,4 +201,18 @@ class AdminDomainController extends Controller implements HasMiddleware
 
         return back()->with('success', "Successfully deleted {$deleted} domain(s) & configs removed from server!");
     }
+
+    public function bulkStatus(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $status = $request->input('status', 1);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected.');
+        }
+
+        Domain::whereIn('id', $ids)->update(['status' => $status]);
+
+        return back()->with('success', "Successfully updated " . count($ids) . " domain(s) status!");
+    }
 }

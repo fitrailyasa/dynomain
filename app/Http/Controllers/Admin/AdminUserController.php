@@ -133,4 +133,23 @@ class AdminUserController extends Controller implements HasMiddleware
 
         return back()->with('success', 'Successfully deleted ' . count($ids) . ' user(s)!');
     }
+
+    public function bulkStatus(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $status = $request->input('status', 1);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected.');
+        }
+
+        // For users, status is email_verified_at
+        if ($status) {
+            User::whereIn('id', $ids)->update(['email_verified_at' => now()]);
+        } else {
+            User::whereIn('id', $ids)->update(['email_verified_at' => null]);
+        }
+
+        return back()->with('success', "Successfully updated " . count($ids) . " user(s) status!");
+    }
 }

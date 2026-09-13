@@ -248,4 +248,18 @@ class AdminServerController extends Controller implements HasMiddleware
 
         return back()->with('success', 'Successfully deleted ' . count($ids) . ' server(s)!');
     }
+
+    public function bulkStatus(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $status = $request->input('status', 1);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No items selected.');
+        }
+
+        Server::whereIn('id', $ids)->update(['status' => $status]);
+
+        return back()->with('success', "Successfully updated " . count($ids) . " server(s) status!");
+    }
 }

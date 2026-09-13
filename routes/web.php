@@ -25,11 +25,16 @@ Route::middleware('auth')->group(function () {
 
         // Bulk delete routes (before resource routes)
         Route::delete('user/bulk-delete', [AdminUserController::class, 'bulkDelete'])->name('user.bulk-delete');
+        Route::patch('user/bulk-status', [AdminUserController::class, 'bulkStatus'])->name('user.bulk-status');
         Route::delete('role/bulk-delete', [AdminRoleController::class, 'bulkDelete'])->name('role.bulk-delete');
         Route::delete('server/bulk-delete', [AdminServerController::class, 'bulkDelete'])->name('server.bulk-delete');
+        Route::patch('server/bulk-status', [AdminServerController::class, 'bulkStatus'])->name('server.bulk-status');
         Route::delete('domain/bulk-delete', [AdminDomainController::class, 'bulkDelete'])->name('domain.bulk-delete');
+        Route::patch('domain/bulk-status', [AdminDomainController::class, 'bulkStatus'])->name('domain.bulk-status');
         Route::delete('subdomain/bulk-delete', [AdminSubdomainController::class, 'bulkDelete'])->name('subdomain.bulk-delete');
+        Route::patch('subdomain/bulk-status', [AdminSubdomainController::class, 'bulkStatus'])->name('subdomain.bulk-status');
         Route::delete('github-ssh/bulk-delete', [AdminGithubSshController::class, 'bulkDelete'])->name('github-ssh.bulk-delete');
+        Route::patch('github-ssh/bulk-status', [AdminGithubSshController::class, 'bulkStatus'])->name('github-ssh.bulk-status');
 
         Route::resource('user', AdminUserController::class);
         Route::patch('user/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('user.toggle-status');
