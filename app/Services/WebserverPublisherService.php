@@ -304,4 +304,168 @@ class WebserverPublisherService
 
         return $ssh;
     }
+
+    /**
+     * Unpublish - remove symlink from sites-enabled (disable config).
+     */
+    public function unpublish(Domain|Subdomain $item, ?Server $server = null): array
+    {
+        $targetServer = $server ?? $item->server;
+
+        if (!$targetServer) {
+            $targetServer = Server::where('type', 'local')->first();
+        }
+
+        if (!$targetServer) {
+            return ['success' => false, 'message' => 'No server configured.', 'log' => ''];
+        }
+
+        $filename = $this->generator->getFilename($item);
+        $log = [];
+
+        if ($targetServer->type === 'ssh') {
+            $log[] = "[SSH Unpublish] Connecting to {$targetServer->username}@{$targetServer->host}";
+            try {
+                $ssh = $this->createSshConnection($targetServer);
+                $log[] = "[SSH Unpublish] Connected.";
+
+                $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+                $remoteSymlink = $symlinkPath ? "{$symlinkPath}/{$filename}" : '';
+
+                if (!empty($remoteSymlink)) {
+                    $log[] = "[SSH Unpublish] Removing symlink: {$remoteSymlink}";
+                    $ssh->exec("sudo rm -f " . escapeshellarg($remoteSymlink));
+                }
+
+                $webserverType = $targetServer->webserver_type ?? 'nginx';
+                $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+                $log[] = "[SSH Unpublish] Reloading: {$reloadCmd}";
+                $ssh->exec($reloadCmd);
+
+                $item->update(['publish_status' => 'pending', 'publish_log' => implode("\n", $log)]);
+
+                return ['success' => true, 'message' => "Unpublished on {$targetServer->name}!", 'log' => implode("\n", $log)];
+            } catch (\Throwable $e) {
+                $log[] = "[SSH Unpublish Error] " . $e->getMessage();
+                return ['success' => false, 'message' => 'Unpublish failed: ' . $e->getMessage(), 'log' => implode("\n", $log)];
+            }
+        } else {
+            $log[] = "[Local Unpublish] Removing symlink for: {$filename}";
+            $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+            $symlinkTarget = $symlinkPath ? $symlinkPath . '/' . $filename : '';
+
+            if (!empty($symlinkTarget)) {
+                try {
+                    if (is_link($symlinkTarget)) {
+                        @unlink($symlinkTarget);
+                        $log[] = "[Local Unpublish] Removed symlink: {$symlinkTarget}";
+                    }
+                } catch (\Throwable $e) {
+                    Process::run("sudo rm -f " . escapeshellarg($symlinkTarget));
+                    $log[] = "[Local Unpublish] Removed symlink via sudo.";
+                }
+            }
+
+            $webserverType = $targetServer->webserver_type ?? 'nginx';
+            $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+            $log[] = "[Local Unpublish] Reloading: {$reloadCmd}";
+            Process::run($reloadCmd);
+
+            $item->update(['publish_status' => 'pending', 'publish_log' => implode("\n", $log)]);
+
+            return ['success' => true, 'message' => 'Unpublished successfully!', 'log' => implode("\n", $log)];
+        }
+    }
+
+    /**
+     * Delete config file from server (available + enabled + storage).
+     */
+    public function deleteConfig(Domain|Subdomain $item, ?Server $server = null): array
+    {
+        $targetServer = $server ?? $item->server;
+
+        if (!$targetServer) {
+            $targetServer = Server::where('type', 'local')->first();
+        }
+
+        if (!$targetServer) {
+            return ['success' => true, 'message' => 'No server configured, skipped.', 'log' => ''];
+        }
+
+        $filename = $this->generator->getFilename($item);
+        $log = [];
+
+        if ($targetServer->type === 'ssh') {
+            $log[] = "[SSH Delete] Connecting to {$targetServer->username}@{$targetServer->host}";
+            try {
+                $ssh = $this->createSshConnection($targetServer);
+                $log[] = "[SSH Delete] Connected.";
+
+                $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
+                $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+
+                $remoteConfig = "{$configPath}/{$filename}";
+                $remoteSymlink = $symlinkPath ? "{$symlinkPath}/{$filename}" : '';
+
+                $log[] = "[SSH Delete] Removing symlink: {$remoteSymlink}";
+                $ssh->exec("sudo rm -f " . escapeshellarg($remoteSymlink));
+
+                $log[] = "[SSH Delete] Removing config: {$remoteConfig}";
+                $ssh->exec("sudo rm -f " . escapeshellarg($remoteConfig));
+
+                $storageFile = storage_path('app/webservers/' . $filename);
+                if (file_exists($storageFile)) {
+                    @unlink($storageFile);
+                    $log[] = "[SSH Delete] Removed storage copy.";
+                }
+
+                $webserverType = $targetServer->webserver_type ?? 'nginx';
+                $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+                $log[] = "[SSH Delete] Reloading: {$reloadCmd}";
+                $ssh->exec($reloadCmd);
+
+                return ['success' => true, 'message' => "Config deleted on {$targetServer->name}!", 'log' => implode("\n", $log)];
+            } catch (\Throwable $e) {
+                $log[] = "[SSH Delete Error] " . $e->getMessage();
+                return ['success' => false, 'message' => 'Delete failed: ' . $e->getMessage(), 'log' => implode("\n", $log)];
+            }
+        } else {
+            $configPath = rtrim($targetServer->config_path ?: '/etc/nginx/sites-available', '/\\');
+            $symlinkPath = rtrim($targetServer->symlink_path ?: '', '/\\');
+
+            $localConfig = $configPath . '/' . $filename;
+            $localSymlink = $symlinkPath ? $symlinkPath . '/' . $filename : '';
+
+            try {
+                if (file_exists($localConfig)) {
+                    @unlink($localConfig);
+                    $log[] = "[Local Delete] Removed config: {$localConfig}";
+                }
+            } catch (\Throwable $e) {
+                Process::run("sudo rm -f " . escapeshellarg($localConfig));
+            }
+
+            try {
+                if (!empty($localSymlink) && (is_link($localSymlink) || file_exists($localSymlink))) {
+                    @unlink($localSymlink);
+                    $log[] = "[Local Delete] Removed symlink: {$localSymlink}";
+                }
+            } catch (\Throwable $e) {
+                Process::run("sudo rm -f " . escapeshellarg($localSymlink));
+            }
+
+            $storageFile = storage_path('app/webservers/' . $filename);
+            if (file_exists($storageFile)) {
+                @unlink($storageFile);
+                $log[] = "[Local Delete] Removed storage copy.";
+            }
+
+            $webserverType = $targetServer->webserver_type ?? 'nginx';
+            $reloadCmd = $targetServer->reload_command ?: (($webserverType === 'apache') ? 'sudo systemctl reload apache2' : 'sudo systemctl reload nginx');
+            $log[] = "[Local Delete] Reloading: {$reloadCmd}";
+            Process::run($reloadCmd);
+
+            return ['success' => true, 'message' => 'Config deleted successfully!', 'log' => implode("\n", $log)];
+        }
+    }
 }

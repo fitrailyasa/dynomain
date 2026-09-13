@@ -23,7 +23,7 @@ class AdminDomainController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:view:domain', only: ['index']),
             new Middleware('permission:create:domain', only: ['store']),
-            new Middleware('permission:edit:domain', only: ['update', 'toggleStatus', 'previewConfig', 'publishConfig']),
+            new Middleware('permission:edit:domain', only: ['update', 'toggleStatus', 'previewConfig', 'publishConfig', 'unpublish']),
             new Middleware('permission:delete:domain', only: ['destroy']),
         ];
     }
@@ -128,9 +128,28 @@ class AdminDomainController extends Controller implements HasMiddleware
         return back()->with('error', $result['message'] . "\n\nLog Details:\n" . $result['log']);
     }
 
-    public function destroy(string $id)
+    public function unpublish(string $id, WebserverPublisherService $publisher)
     {
-        Domain::findOrFail($id)->forceDelete();
-        return back()->with('success', 'Successfully Deleted ' . $this->title . '!');
+        $domain = Domain::findOrFail($id);
+        $server = $domain->server;
+        $result = $publisher->unpublish($domain, $server);
+
+        if ($result['success']) {
+            return back()->with('success', $result['message'] . "\n\nLog:\n" . $result['log']);
+        }
+
+        return back()->with('error', $result['message'] . "\n\nLog:\n" . $result['log']);
+    }
+
+    public function destroy(string $id, WebserverPublisherService $publisher)
+    {
+        $domain = Domain::findOrFail($id);
+
+        // Hapus config file & symlink dari server
+        $publisher->deleteConfig($domain, $domain->server);
+
+        $domain->forceDelete();
+
+        return back()->with('success', 'Successfully Deleted domain & config removed from server!');
     }
 }
