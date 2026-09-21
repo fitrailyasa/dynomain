@@ -21,7 +21,7 @@
                 </div>
                 <div class="modal-footer">
                     <x-button.close />
-                    <button type="submit" class="btn btn-danger btn-sm">{{ __('Hapus') }}</button>
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                 </div>
             </form>
         </div>

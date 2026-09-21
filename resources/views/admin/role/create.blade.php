@@ -1,6 +1,6 @@
 <!-- Button to open modal -->
 <button role="button" class="btn btn-sm m-1 btn-primary" data-bs-toggle="modal" data-bs-target=".formCreate"><i
-        class="fas fa-plus"></i><span class="d-none d-sm-inline"> {{ __('Add') }}</span></button>
+        class="fas fa-plus"></i></button>
 
 <!-- Modal -->
 <div class="modal fade formCreate" tabindex="-1" role="dialog">
