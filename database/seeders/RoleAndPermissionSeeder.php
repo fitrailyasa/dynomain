@@ -18,6 +18,7 @@ class RoleAndPermissionSeeder extends Seeder
             'subdomain' => ['view', 'create', 'edit', 'delete'],
             'server' => ['view', 'create', 'edit', 'delete'],
             'github-ssh' => ['view', 'create', 'edit', 'delete'],
+            'server-task' => ['view', 'execute'],
         ];
 
         foreach ($entities as $entity => $actions) {

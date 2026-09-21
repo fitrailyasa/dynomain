@@ -66,13 +66,15 @@
                     </li>
                 @endcan
 
-                <li class="nav-item">
-                    <a href="{{ route('admin.server-task.index') }}"
-                        class="nav-link text-white {{ Request::routeIs('admin.server-task.*') ? 'aktif' : '' }}">
-                        <i class="nav-icon fas fa-terminal"></i>
-                        <p>Server Task</p>
-                    </a>
-                </li>
+                @can('view:server-task')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.server-task.index') }}"
+                            class="nav-link text-white {{ Request::routeIs('admin.server-task.*') ? 'aktif' : '' }}">
+                            <i class="nav-icon fas fa-terminal"></i>
+                            <p>Server Task</p>
+                        </a>
+                    </li>
+                @endcan
 
                 @can('view:domain')
                     <li class="nav-item">

@@ -56,9 +56,9 @@ class AdminUserController extends Controller implements HasMiddleware
         $userData = $request->validated();
 
         if ($request->email_verified) {
-            $userData->email_verified_at = now();
+            $userData['email_verified_at'] = now();
         } else {
-            $userData->email_verified_at = null;
+            $userData['email_verified_at'] = null;
         }
 
         if (!empty($userData['password'])) {

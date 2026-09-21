@@ -14,7 +14,8 @@ class AdminServerTaskController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth'),
+            new Middleware('permission:view:server-task', only: ['index']),
+            new Middleware('permission:execute:server-task', only: ['execute']),
         ];
     }
 
