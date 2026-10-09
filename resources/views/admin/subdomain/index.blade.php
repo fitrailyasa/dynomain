@@ -115,10 +115,14 @@
                     @endcan
                     <td>{{ $subdomains->firstItem() + $loop->index }}</td>
                     <td>
-                        <strong>{{ $item->name }}.{{ $item->domain ? $item->domain->name : '' }}</strong>
+                        <a href="{{ ($item->ssl_type ?? 'none') !== 'none' ? 'https' : 'http' }}://{{ $item->name }}.{{ $item->domain ? $item->domain->name : '' }}" target="_blank" rel="noopener"><strong>{{ $item->name }}.{{ $item->domain ? $item->domain->name : '' }}</strong></a>
                     </td>
                     <td>
-                        {{ $item->domain ? $item->domain->name : '-' }}
+                        @if($item->domain)
+                            <a href="{{ ($item->domain->ssl_type ?? 'none') !== 'none' ? 'https' : 'http' }}://{{ $item->domain->name }}" target="_blank" rel="noopener">{{ $item->domain->name }}</a>
+                        @else
+                            -
+                        @endif
                     </td>
                     <td>
                         <small>

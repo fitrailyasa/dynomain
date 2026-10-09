@@ -107,7 +107,7 @@
                     @endcan
                     <td>{{ $domains->firstItem() + $loop->index }}</td>
                     <td>
-                        <strong>{{ $item->name }}</strong>
+                        <a href="{{ ($item->ssl_type ?? 'none') !== 'none' ? 'https' : 'http' }}://{{ $item->name }}" target="_blank" rel="noopener"><strong>{{ $item->name }}</strong></a>
                         @if($item->is_wildcard)
                             <br><span class="badge bg-info" title="Wildcard Cloudflare domain (*.{{ $item->name }})"><i class="fas fa-asterisk"></i> Wildcard</span>
                         @endif
