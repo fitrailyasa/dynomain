@@ -15,8 +15,8 @@
                     </button>
                 </div>
                 <div class="modal-body text-left">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Nama Domain') }}<span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror"
                                 placeholder="e.g. example.com" name="name" id="name" value="{{ old('name') }}" required>
@@ -24,7 +24,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('IP Server / Backend') }}<span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('ip') is-invalid @enderror"
                                 placeholder="e.g. 127.0.0.1" name="ip" id="ip" value="{{ old('ip') }}" required>
@@ -33,18 +33,21 @@
                             @enderror
                         </div>
 
-                        <!-- Wildcard Option -->
-                        <div class="col-md-12 mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="is_wildcard" id="is_wildcard_create" value="1">
-                                <label class="form-check-label" for="is_wildcard_create">
-                                    Wildcard <code>*.domain.com</code>
-                                </label>
-                            </div>
+                        <div class="col-12">
+                            <label class="option-switch" for="is_wildcard_create">
+                                <span class="option-switch-copy">
+                                    <span class="option-switch-title">Wildcard Cloudflare</span>
+                                    <span class="option-switch-hint">Aktifkan untuk semua subdomain <code>*.domain.com</code></span>
+                                </span>
+                                <span class="toggle-switch mb-0">
+                                    <input type="checkbox" name="is_wildcard" id="is_wildcard_create" value="1" {{ old('is_wildcard') ? 'checked' : '' }}>
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
                         </div>
 
                         <!-- Target Server Selection -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Target Server (SSH Remote)') }}<span class="text-danger">*</span></label>
                             @if($servers->isEmpty())
                                 <div class="alert alert-warning mb-0 py-2">
@@ -60,7 +63,7 @@
                         </div>
 
                         <!-- Webserver Type -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Tipe Webserver') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="webserver_type" required>
                                 <option value="nginx">Nginx</option>
@@ -69,7 +72,7 @@
                         </div>
 
                         <!-- Target Type & Destination -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Tipe Routing Target') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="target_type" id="target_type_create" required onchange="toggleTargetFields(this.value)">
                                 <option value="proxy">Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
@@ -84,19 +87,19 @@
                                 <option value="redirect">Redirect ke Domain Lain</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3" id="target_destination_group">
+                        <div class="col-12 col-md-6" id="target_destination_group">
                             <label class="form-label">{{ __('Target Destination') }}</label>
                             <input type="text" class="form-control" name="target_destination" id="target_destination_create" placeholder="http://127.0.0.1:8000 atau /var/www/html">
-                            <small class="text-muted">Jika dikosongkan, otomatis menggunakan IP Backend</small>
+                            <div class="form-text text-muted">Jika dikosongkan, otomatis menggunakan IP Backend</div>
                         </div>
-                        <div class="col-md-6 mb-3" id="redirect_url_group" style="display:none">
+                        <div class="col-12 col-md-6" id="redirect_url_group" style="display:none">
                             <label class="form-label">{{ __('Redirect Ke URL') }}<span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="redirect_url" id="redirect_url_create" placeholder="https://example.com/new-page">
-                            <small class="text-muted">Masukkan URL tujuan redirect (contoh: https://example.com/baru)</small>
+                            <div class="form-text text-muted">Masukkan URL tujuan redirect (contoh: https://example.com/baru)</div>
                         </div>
 
                         <!-- SSL Config -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Mode SSL / HTTPS') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="ssl_type" required>
                                 <option value="certbot" selected>Certbot Let's Encrypt (Port 443 SSL)</option>
@@ -106,7 +109,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Status Domain') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="status" required>
                                 <option value="1">Aktif</option>
@@ -115,7 +118,7 @@
                         </div>
 
                         <!-- Custom Directives -->
-                        <div class="col-md-12 mb-3">
+                        <div class="col-12">
                             <label class="form-label">{{ __('Custom Directives (Nginx / Apache Header/Rules)') }}</label>
                             <div class="input-group mb-2">
                                 <span class="input-group-text"><i class="fas fa-cog"></i></span>
@@ -126,7 +129,7 @@
                                 </select>
                             </div>
                             <textarea class="form-control font-monospace" name="custom_nginx_config" id="custom_config_textarea_create" rows="3" placeholder="# Custom directives here... (hanya aktif jika mode Replace atau Add)" style="display:none"></textarea>
-                            <small class="text-muted">Pilih mode terlebih dahulu. <strong>Default</strong> = ignore custom directives. <strong>Replace</strong> = timpa semua. <strong>Add</strong> = gabungkan.</small>
+                            <div class="form-text text-muted"><strong>Default</strong> memakai config bawaan. <strong>Replace</strong> menimpa semua. <strong>Add</strong> menggabungkan keduanya.</div>
                         </div>
                     </div>
                 </div>
@@ -147,7 +150,7 @@ function toggleTargetFields(targetType) {
     var destGroup = document.getElementById('target_destination_group');
     var redirectGroup = document.getElementById('redirect_url_group');
     var webserverGroup = document.querySelector('[name="webserver_type"]').closest('.col-md-6');
-    var customConfigGroup = document.getElementById('custom_config_mode_create').closest('.col-md-12');
+    var customConfigGroup = document.getElementById('custom_config_mode_create').closest('.col-12');
     var sslGroup = document.querySelector('[name="ssl_type"]').closest('.col-md-6');
 
     if (targetType === 'redirect') {

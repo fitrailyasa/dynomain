@@ -60,9 +60,10 @@ class AdminServerTaskController extends Controller implements HasMiddleware
                 }
 
                 $cmd = "cd {$destination} && git clone {$repoUrl}";
-                $log[] = "[SSH] Running: {$cmd}";
-                $result = $ssh->exec($cmd);
-                $log[] = "[SSH] Output: " . trim($result);
+                $failed = $this->appendCommandResult($ssh, $cmd, $log);
+                if ($failed) {
+                    return back()->with('error', implode('<br>', $log));
+                }
 
             } elseif ($taskType === 'install') {
                 $packageManager = $request->input('package_manager');
@@ -87,9 +88,10 @@ class AdminServerTaskController extends Controller implements HasMiddleware
                     return back()->with('error', 'Invalid package manager!');
                 }
 
-                $log[] = "[SSH] Running: {$cmd}";
-                $result = $ssh->exec($cmd);
-                $log[] = "[SSH] Output: " . trim($result);
+                $failed = $this->appendCommandResult($ssh, $cmd, $log);
+                if ($failed) {
+                    return back()->with('error', implode('<br>', $log));
+                }
 
             } elseif ($taskType === 'chmod') {
                 $path = $request->input('chmod_path');
@@ -102,9 +104,10 @@ class AdminServerTaskController extends Controller implements HasMiddleware
 
                 $recursiveFlag = $recursive ? '-R ' : '';
                 $cmd = "sudo chmod {$recursiveFlag}{$permissions} {$path}";
-                $log[] = "[SSH] Running: {$cmd}";
-                $result = $ssh->exec($cmd);
-                $log[] = "[SSH] Output: " . trim($result);
+                $failed = $this->appendCommandResult($ssh, $cmd, $log);
+                if ($failed) {
+                    return back()->with('error', implode('<br>', $log));
+                }
 
             } elseif ($taskType === 'chown') {
                 $path = $request->input('chown_path');
@@ -119,9 +122,10 @@ class AdminServerTaskController extends Controller implements HasMiddleware
                 $ownerStr = $group ? "{$owner}:{$group}" : $owner;
                 $recursiveFlag = $recursive ? '-R ' : '';
                 $cmd = "sudo chown {$recursiveFlag}{$ownerStr} {$path}";
-                $log[] = "[SSH] Running: {$cmd}";
-                $result = $ssh->exec($cmd);
-                $log[] = "[SSH] Output: " . trim($result);
+                $failed = $this->appendCommandResult($ssh, $cmd, $log);
+                if ($failed) {
+                    return back()->with('error', implode('<br>', $log));
+                }
 
             } elseif ($taskType === 'custom') {
                 $command = $request->input('command');
@@ -132,9 +136,10 @@ class AdminServerTaskController extends Controller implements HasMiddleware
                 }
 
                 $cmd = "cd {$workingDir} && {$command}";
-                $log[] = "[SSH] Running: {$cmd}";
-                $result = $ssh->exec($cmd);
-                $log[] = "[SSH] Output: " . trim($result);
+                $failed = $this->appendCommandResult($ssh, $cmd, $log);
+                if ($failed) {
+                    return back()->with('error', implode('<br>', $log));
+                }
             }
 
             $log[] = "[SSH] Task completed successfully!";
@@ -144,6 +149,100 @@ class AdminServerTaskController extends Controller implements HasMiddleware
             $log[] = "[Error] " . $e->getMessage();
             return back()->with('error', implode('<br>', $log));
         }
+    }
+
+    /**
+     * SSH exec has no TTY, so prompts such as Composer's root question
+     * and artisan's production yes/no never receive an answer.
+     *
+     * @param  array<int, string>  $log
+     */
+    protected function appendCommandResult($ssh, string $cmd, array &$log): bool
+    {
+        $cmd = $this->makeNonInteractive($cmd);
+        $wrapped = 'export COMPOSER_ALLOW_SUPERUSER=1 DEBIAN_FRONTEND=noninteractive GIT_TERMINAL_PROMPT=0 NEEDRESTART_MODE=a; ' . $cmd;
+
+        $log[] = '[SSH] Running: ' . htmlspecialchars($cmd, ENT_QUOTES, 'UTF-8');
+        $stdout = (string) $ssh->exec($wrapped);
+        $stderr = method_exists($ssh, 'getStdError') ? (string) $ssh->getStdError() : '';
+        $text = trim($stdout);
+        if (trim($stderr) !== '') {
+            $text .= ($text !== '' ? "\n" : '') . trim($stderr);
+        }
+
+        $timedOut = method_exists($ssh, 'isTimeout') && $ssh->isTimeout();
+        if ($timedOut) {
+            $text .= ($text !== '' ? "\n" : '') . 'Command timed out after 300 seconds.';
+        }
+
+        $log[] = '[SSH] Output: ' . nl2br(htmlspecialchars($text !== '' ? $text : '(no output)', ENT_QUOTES, 'UTF-8'));
+
+        $exit = method_exists($ssh, 'getExitStatus') ? $ssh->getExitStatus() : null;
+        if ($timedOut) {
+            $log[] = '[SSH] Command failed (timeout)';
+            return true;
+        }
+        if (is_int($exit) && $exit !== 0) {
+            $log[] = "[SSH] Command failed (exit {$exit})";
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function makeNonInteractive(string $command): string
+    {
+        $segments = preg_split('/(\s*(?:&&|\|\|)\s*|;)/', $command, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if ($segments === false) {
+            return $command;
+        }
+
+        $prepared = '';
+        foreach ($segments as $segment) {
+            if (preg_match('/^\s*(?:&&|\|\||;)\s*$/', $segment)) {
+                $prepared .= $segment;
+                continue;
+            }
+            $prepared .= $this->prepareCommandSegment($segment);
+        }
+
+        return $prepared;
+    }
+
+    protected function prepareCommandSegment(string $segment): string
+    {
+        $trimmed = ltrim($segment);
+        $indent = substr($segment, 0, strlen($segment) - strlen($trimmed));
+
+        if (preg_match('/^((?:sudo(?:\s+-E)?\s+)?)((?:[\w.\/-]+\/)?composer)(?=\s|$)/', $trimmed, $composer)) {
+            $rest = substr($trimmed, strlen($composer[0]));
+            if (! preg_match('/(^|\s)(?:--no-interaction|-n)(\s|$)/', $trimmed)) {
+                $rest = ' --no-interaction' . $rest;
+            }
+            $trimmed = $composer[1] . 'COMPOSER_ALLOW_SUPERUSER=1 ' . $composer[2] . $rest;
+        }
+
+        if (preg_match('/^((?:sudo(?:\s+-E)?\s+)?)php(?:\d+(?:\.\d+)*)?\s+artisan\s+(migrate|migrate:fresh|migrate:refresh|migrate:reset|migrate:rollback|db:seed|db:wipe)(?=\s|$)/', $trimmed)
+            && ! preg_match('/(^|\s)--force(\s|$)/', $trimmed)) {
+            $trimmed = preg_replace(
+                '/^((?:sudo(?:\s+-E)?\s+)?)php(?:\d+(?:\.\d+)*)?\s+artisan\s+(migrate|migrate:fresh|migrate:refresh|migrate:reset|migrate:rollback|db:seed|db:wipe)(?=\s|$)/',
+                '$0 --force --no-interaction',
+                $trimmed,
+                1
+            );
+        }
+
+        if (preg_match('/^((?:sudo(?:\s+-E)?\s+)?)apt(-get)?\s+(install|upgrade|dist-upgrade|full-upgrade|remove|purge)\b/', $trimmed)
+            && ! preg_match('/(^|\s)(?:-y|--yes|--assume-yes)(\s|$)/', $trimmed)) {
+            $trimmed = preg_replace(
+                '/^((?:sudo(?:\s+-E)?\s+)?)apt(-get)?\s+(install|upgrade|dist-upgrade|full-upgrade|remove|purge)\b/',
+                '$0 -y',
+                $trimmed,
+                1
+            );
+        }
+
+        return $indent . $trimmed;
     }
 
     protected function injectPatToUrl(string $url, string $username, string $pat): string
@@ -165,7 +264,7 @@ class AdminServerTaskController extends Controller implements HasMiddleware
         }
 
         $ssh = new \phpseclib3\Net\SSH2($host, $port);
-        $ssh->setTimeout(60);
+        $ssh->setTimeout(300);
 
         if ($server->auth_type === 'key') {
             $privateKey = $server->private_key;

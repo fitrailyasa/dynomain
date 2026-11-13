@@ -17,28 +17,31 @@
                     </button>
                 </div>
                 <div class="modal-body text-left">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Nama Domain') }}<span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" value="{{ $item->name }}" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('IP Server / Backend') }}<span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="ip" value="{{ $item->ip }}" required>
                         </div>
 
-                        <!-- Wildcard Option -->
-                        <div class="col-md-12 mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="is_wildcard" id="is_wildcard_edit_{{ $item->id }}" value="1" {{ $item->is_wildcard ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_wildcard_edit_{{ $item->id }}">
-                                    Wildcard <code>*.{{ $item->name }}</code>
-                                </label>
-                            </div>
+                        <div class="col-12">
+                            <label class="option-switch" for="is_wildcard_edit_{{ $item->id }}">
+                                <span class="option-switch-copy">
+                                    <span class="option-switch-title">Wildcard Cloudflare</span>
+                                    <span class="option-switch-hint">Aktifkan untuk semua subdomain <code>*.{{ $item->name }}</code></span>
+                                </span>
+                                <span class="toggle-switch mb-0">
+                                    <input type="checkbox" name="is_wildcard" id="is_wildcard_edit_{{ $item->id }}" value="1" {{ $item->is_wildcard ? 'checked' : '' }}>
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
                         </div>
 
                         <!-- Target Server Selection -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Target Server (SSH Remote)') }}<span class="text-danger">*</span></label>
                             @if($servers->isEmpty())
                                 <div class="alert alert-warning mb-0 py-2">
@@ -56,7 +59,7 @@
                         </div>
 
                         <!-- Webserver Type -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Tipe Webserver') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="webserver_type" required>
                                 <option value="nginx" {{ $item->webserver_type === 'nginx' ? 'selected' : '' }}>Nginx</option>
@@ -65,7 +68,7 @@
                         </div>
 
                         <!-- Target Type & Destination -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Tipe Routing Target') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="target_type" id="target_type_edit_{{ $item->id }}" required onchange="toggleTargetFields{{ $item->id }}(this.value)">
                                 <option value="proxy" {{ $item->target_type === 'proxy' ? 'selected' : '' }}>Reverse Proxy (e.g. http://127.0.0.1:8000)</option>
@@ -80,18 +83,18 @@
                                 <option value="redirect" {{ $item->target_type === 'redirect' ? 'selected' : '' }}>Redirect ke Domain Lain</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3" id="target_destination_group_{{ $item->id }}" style="display: {{ $item->target_type === 'redirect' ? 'none' : 'block' }}">
+                        <div class="col-12 col-md-6" id="target_destination_group_{{ $item->id }}" style="display: {{ $item->target_type === 'redirect' ? 'none' : 'block' }}">
                             <label class="form-label">{{ __('Target Destination') }}</label>
                             <input type="text" class="form-control" name="target_destination" value="{{ $item->target_destination }}" placeholder="http://127.0.0.1:8000 atau /var/www/html">
                         </div>
-                        <div class="col-md-6 mb-3" id="redirect_url_group_{{ $item->id }}" style="display: {{ $item->target_type === 'redirect' ? 'block' : 'none' }}">
+                        <div class="col-12 col-md-6" id="redirect_url_group_{{ $item->id }}" style="display: {{ $item->target_type === 'redirect' ? 'block' : 'none' }}">
                             <label class="form-label">{{ __('Redirect Ke URL') }}<span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="redirect_url" value="{{ $item->redirect_url ?? '' }}" placeholder="https://example.com/new-page">
-                            <small class="text-muted">Masukkan URL tujuan redirect</small>
+                            <div class="form-text text-muted">Masukkan URL tujuan redirect</div>
                         </div>
 
                         <!-- SSL Config -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Mode SSL / HTTPS') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="ssl_type" required>
                                 <option value="cloudflare" {{ $item->ssl_type === 'cloudflare' ? 'selected' : '' }}>Cloudflare Proxy (Port 80 HTTP + Real IP Header)</option>
@@ -101,7 +104,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">{{ __('Status Domain') }}<span class="text-danger">*</span></label>
                             <select class="form-select" name="status" required>
                                 <option value="1" {{ $item->status ? 'selected' : '' }}>Aktif</option>
@@ -110,7 +113,7 @@
                         </div>
 
                         <!-- Custom Directives -->
-                        <div class="col-md-12 mb-3">
+                        <div class="col-12">
                             <label class="form-label">{{ __('Custom Directives (Nginx / Apache Header/Rules)') }}</label>
                             <div class="input-group mb-2">
                                 <span class="input-group-text"><i class="fas fa-cog"></i></span>
@@ -121,7 +124,7 @@
                                 </select>
                             </div>
                             <textarea class="form-control font-monospace" name="custom_nginx_config" id="custom_config_textarea_edit_{{ $item->id }}" rows="3" style="display:none">{{ $item->custom_nginx_config }}</textarea>
-                            <small class="text-muted">Pilih mode terlebih dahulu. <strong>Default</strong> = ignore custom directives. <strong>Replace</strong> = timpa semua. <strong>Add</strong> = gabungkan.</small>
+                            <div class="form-text text-muted"><strong>Default</strong> memakai config bawaan. <strong>Replace</strong> menimpa semua. <strong>Add</strong> menggabungkan keduanya.</div>
                         </div>
                     </div>
                 </div>
@@ -142,7 +145,7 @@ function toggleTargetFields{{ $item->id }}(targetType) {
     var destGroup = document.getElementById('target_destination_group_{{ $item->id }}');
     var redirectGroup = document.getElementById('redirect_url_group_{{ $item->id }}');
     var webserverGroup = document.querySelector('#editDomainModal{{ $item->id }} [name="webserver_type"]').closest('.col-md-6');
-    var customConfigGroup = document.getElementById('custom_config_mode_edit_{{ $item->id }}').closest('.col-md-12');
+    var customConfigGroup = document.getElementById('custom_config_mode_edit_{{ $item->id }}').closest('.col-12');
 
     if (targetType === 'redirect') {
         destGroup.style.display = 'none';

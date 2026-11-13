@@ -226,7 +226,7 @@
                     <ul class="small">
                         <li><strong>APT:</strong> <code>nginx git curl</code></li>
                         <li><strong>NPM:</strong> <code>axios laravel-mix</code></li>
-                        <li><strong>Composer:</strong> <code>laravel/framework</code></li>
+                        <li><strong>Composer:</strong> <code>laravel/framework</code> (dijalankan tanpa pertanyaan root)</li>
                         <li><strong>PIP:</strong> <code>flask django</code></li>
                     </ul>
 
@@ -255,6 +255,7 @@
                     <ul class="small">
                         <li><code>sudo systemctl restart nginx</code></li>
                         <li><code>sudo apt update && sudo apt upgrade</code></li>
+                        <li><code>composer install</code> dan <code>php artisan migrate</code> tidak menunggu yes/no</li>
                         <li><code>docker-compose up -d</code></li>
                     </ul>
                 </div>

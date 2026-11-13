@@ -93,6 +93,53 @@
             transform: translateX(22px);
         }
 
+        .option-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+            min-height: 58px;
+            margin: 0;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .option-switch-copy {
+            min-width: 0;
+        }
+
+        .option-switch-title {
+            display: block;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .option-switch-hint {
+            display: block;
+            margin-top: 0.15rem;
+            color: #6c757d;
+            font-size: 0.8125rem;
+            line-height: 1.35;
+        }
+
+        .option-switch .toggle-switch {
+            flex: 0 0 46px;
+        }
+
+        .modal-body .form-label {
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .modal-body .form-text {
+            margin-top: 0.3rem;
+            margin-bottom: 0;
+        }
+
         .btn-icon-action {
             --btn-action-size: 31px;
             box-sizing: border-box;

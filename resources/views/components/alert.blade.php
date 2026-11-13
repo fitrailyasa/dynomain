@@ -17,7 +17,7 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                html: '{!! session('error') !!}',
+                html: {!! json_encode(session('error')) !!},
                 confirmButtonColor: '#d33',
             });
         });
@@ -30,7 +30,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Successfully!',
-                text: '{{ session('success') }}',
+                html: {!! json_encode(session('success')) !!},
                 confirmButtonColor: '#28a745',
             });
         });
