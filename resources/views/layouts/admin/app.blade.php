@@ -92,6 +92,26 @@
         .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(22px);
         }
+
+        .btn-icon-action {
+            --btn-action-size: 31px;
+            box-sizing: border-box;
+            width: var(--btn-action-size);
+            height: var(--btn-action-size);
+            min-width: var(--btn-action-size);
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .btn-icon-action > i {
+            font-size: 0.875rem;
+            line-height: 1;
+            margin: 0;
+        }
     </style>
 
     {{ $style ?? '' }}
@@ -154,8 +174,10 @@
                     if (submitBtn) {
                         const spinner = submitBtn.querySelector('.spinner-border');
                         const btnText = submitBtn.querySelector('.btn-text');
+                        const icon = submitBtn.querySelector('i');
                         if (spinner) spinner.classList.remove('d-none');
                         if (btnText) btnText.classList.add('d-none');
+                        else if (icon) icon.classList.add('d-none');
                         submitBtn.disabled = true;
                     }
                 });

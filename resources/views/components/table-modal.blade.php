@@ -1,5 +1,5 @@
 <!-- Button to open modal -->
-<button role="button" class="btn btn-sm m-1 {{ $buttonColor }}" data-bs-toggle="modal"
+<button role="button" class="btn btn-sm m-1 btn-icon-action {{ $buttonColor }}" data-bs-toggle="modal"
     data-bs-target=".form{{ $modalType }}{{ $id }}"><i class="fas {{ $buttonIcon }}"></i></button>
 
 <!-- Modal -->
@@ -19,7 +19,7 @@
                     @csrf
                     @method($modalMethod)
                     <x-button.close />
-                    <button type="submit" class="btn {{ $buttonColor }} btn-submit">
+                    <button type="submit" class="btn btn-sm btn-icon-action {{ $buttonColor }} btn-submit">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         <i class="fas {{ $buttonIcon }}"></i>
                     </button>

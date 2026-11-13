@@ -204,7 +204,7 @@
                         <td class="manage-row text-center">
                             @can('edit:subdomain')
                                 <!-- Preview Config Button -->
-                                <button type="button" class="btn btn-sm btn-info text-white m-1" onclick="previewSubdomainConfig('{{ route('admin.subdomain.preview-config', $item->id) }}')" title="Preview Webserver Config">
+                                <button type="button" class="btn btn-sm btn-info text-white m-1 btn-icon-action" onclick="previewSubdomainConfig('{{ route('admin.subdomain.preview-config', $item->id) }}')" title="Preview Webserver Config">
                                     <i class="fas fa-code"></i>
                                 </button>
 

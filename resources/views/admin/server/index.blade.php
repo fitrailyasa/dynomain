@@ -91,7 +91,7 @@
                             @if($item->type === 'ssh')
                                 <form action="{{ route('admin.server.test-connection', $item->id) }}" method="POST" class="d-inline">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-info text-white m-1" title="Test Connection SSH">
+                                    <button type="submit" class="btn btn-sm btn-info text-white m-1 btn-icon-action" title="Test Connection SSH">
                                         <i class="fas fa-plug"></i>
                                     </button>
                                 </form>

@@ -208,7 +208,7 @@
                         <td class="manage-row text-center">
                             @can('edit:domain')
                                 <!-- Preview Config Button -->
-                                <button type="button" class="btn btn-sm btn-info text-white m-1" onclick="previewDomainConfig('{{ route('admin.domain.preview-config', $item->id) }}')" title="Preview Webserver Config">
+                                <button type="button" class="btn btn-sm btn-info text-white m-1 btn-icon-action" onclick="previewDomainConfig('{{ route('admin.domain.preview-config', $item->id) }}')" title="Preview Webserver Config">
                                     <i class="fas fa-code"></i>
                                 </button>
 

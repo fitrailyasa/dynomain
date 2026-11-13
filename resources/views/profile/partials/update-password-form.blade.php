@@ -32,7 +32,7 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-check"></i></button>
+            <button type="submit" class="btn btn-primary btn-sm btn-icon-action"><i class="fas fa-check"></i></button>
 
             @if (session('status') === 'password-updated')
                 <span class="text-success small" x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)">

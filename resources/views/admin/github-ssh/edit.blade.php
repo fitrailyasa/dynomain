@@ -1,5 +1,5 @@
 <!-- Button Edit -->
-<button role="button" class="btn btn-sm m-1 btn-warning text-white" data-bs-toggle="modal" data-bs-target="#editGithubSshModal{{ $item->id }}">
+<button role="button" class="btn btn-sm m-1 btn-warning text-white btn-icon-action" data-bs-toggle="modal" data-bs-target="#editGithubSshModal{{ $item->id }}">
     <i class="fas fa-edit"></i>
 </button>
 

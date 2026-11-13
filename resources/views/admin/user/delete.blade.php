@@ -1,5 +1,5 @@
 <!-- Button to open modal -->
-<button role="button" class="btn btn-sm m-1 btn-danger" data-bs-toggle="modal"
+<button role="button" class="btn btn-sm m-1 btn-danger btn-icon-action" data-bs-toggle="modal"
     data-bs-target=".formDelete{{ $item->id }}"><i class="fas fa-trash"></i></button>
 
 <!-- Modal -->
@@ -19,7 +19,7 @@
                     @csrf
                     @method('DELETE')
                     <x-button.close />
-                    <button type="submit" class="btn btn-danger btn-submit">
+                    <button type="submit" class="btn btn-sm btn-danger btn-submit btn-icon-action">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         <i class="fas fa-trash"></i>
                     </button>

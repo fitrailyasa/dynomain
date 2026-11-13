@@ -6,7 +6,7 @@
         </p>
     </header>
 
-    <button type="button" class="btn btn-danger btn-sm mt-3" data-bs-toggle="modal" data-bs-target="#confirmUserDeletion">
+    <button type="button" class="btn btn-danger btn-sm mt-3 btn-icon-action" data-bs-toggle="modal" data-bs-target="#confirmUserDeletion">
         <i class="fas fa-trash"></i>
     </button>
 
@@ -34,8 +34,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
-                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                        <button type="button" class="btn btn-secondary btn-sm btn-icon-action" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                        <button type="submit" class="btn btn-danger btn-sm btn-icon-action"><i class="fas fa-trash"></i></button>
                     </div>
                 </form>
             </div>

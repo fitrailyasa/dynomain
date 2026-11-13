@@ -1,5 +1,5 @@
 <!-- Button to open modal -->
-<button role="button" class="btn btn-sm m-1 btn-primary" data-bs-toggle="modal" data-bs-target=".formCreateUser"><i
+<button role="button" class="btn btn-sm m-1 btn-primary btn-icon-action" data-bs-toggle="modal" data-bs-target=".formCreateUser"><i
         class="fas fa-plus"></i></button>
 
 <!-- Modal -->

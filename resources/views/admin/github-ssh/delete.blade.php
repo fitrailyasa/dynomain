@@ -1,5 +1,5 @@
 <!-- Button Delete -->
-<button role="button" class="btn btn-sm m-1 btn-danger" data-bs-toggle="modal" data-bs-target="#deleteGithubSshModal{{ $item->id }}">
+<button role="button" class="btn btn-sm m-1 btn-danger btn-icon-action" data-bs-toggle="modal" data-bs-target="#deleteGithubSshModal{{ $item->id }}">
     <i class="fas fa-trash"></i>
 </button>
 
@@ -21,7 +21,7 @@
                 </div>
                 <div class="modal-footer">
                     <x-button.close />
-                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                    <button type="submit" class="btn btn-danger btn-sm btn-icon-action"><i class="fas fa-trash"></i></button>
                 </div>
             </form>
         </div>

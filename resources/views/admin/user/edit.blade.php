@@ -1,5 +1,5 @@
 <!-- Button to open modal -->
-<button role="button" class="btn btn-sm m-1 btn-warning" data-bs-toggle="modal"
+<button role="button" class="btn btn-sm m-1 btn-warning btn-icon-action" data-bs-toggle="modal"
     data-bs-target=".formEdit{{ $item->id }}"><i class="fas fa-edit"></i></button>
 
 <!-- Modal -->
