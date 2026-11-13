@@ -112,6 +112,43 @@
             line-height: 1;
             margin: 0;
         }
+
+        .modal .modal-dialog,
+        .modal .modal-dialog-scrollable {
+            height: auto;
+            max-height: calc(100vh - 2rem);
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal .modal-content,
+        .modal .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 2rem);
+            overflow: hidden;
+        }
+
+        .modal .modal-content > form {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 2rem);
+            min-height: 0;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        .modal .modal-content > form > .modal-header,
+        .modal .modal-content > form > .modal-footer,
+        .modal .modal-header,
+        .modal .modal-footer {
+            flex-shrink: 0;
+        }
+
+        .modal .modal-body,
+        .modal .modal-content > form > .modal-body {
+            overflow-y: auto;
+            min-height: 0;
+            flex: 1 1 auto;
+        }
     </style>
 
     {{ $style ?? '' }}
